@@ -3,8 +3,8 @@ from autosteper.autosteper import AutoSteper
 
 para = {
     'mode': 'xtb',
-    'workbase': r'F:\autosteper\AutoSteper\example',
-    'pristine_cage': r'F:\autosteper\AutoSteper\example\c50.xyz',
+    'workbase': r'F:\AutoSteper\example',
+    'pristine_cage': r'F:\AutoSteper\example\c50.xyz',
 
     'gen_para': {
         'gen_core_path': r"I:\new_nauty\my_v\usenauty\bin\cagesearch.exe",

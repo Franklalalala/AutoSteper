@@ -106,6 +106,40 @@ class XTB_Optimizer(Optimizer):
                     with open('opt_error.log', 'a') as f:
                         f.write(str(e) + '\n' + str(task_list) + '\n')
 
+
+    def combine_xtb_log(self):
+        cwd_ = os.getcwd()
+        os.makedirs(name='combined_log', exist_ok=True)
+        if os.path.exists('opt_final'):
+            for an_init in os.listdir(f'opt_{self.init_cycle}'):
+                if an_init not in os.listdir('opt_final'):
+                    os.symlink(
+                        src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
+                        dst=os.path.join('combined_log', f'{an_init}.log')
+                    )
+                else:
+                    init_path = os.path.join('combined_log', f'{an_init}.log')
+                    shutil.copy(
+                        src=os.path.join(f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
+                        dst=init_path
+                    )
+                    final_path = os.path.join('opt_final', an_init, 'xtbopt.log')
+
+                    with open(init_path, 'a') as init_file, open(final_path, 'r') as final_file:
+                        atom_num = int(final_file.readline().strip())
+                        for idx, a_line in enumerate(final_file.readlines()):
+                            if idx < atom_num + 1:
+                                continue
+                            else:
+                                init_file.write(a_line)
+
+        else:
+            for an_init in os.listdir(f'opt_{self.init_cycle}'):
+                os.symlink(
+                    src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
+                    dst=os.path.join('combined_log', f'{an_init}.log')
+                )
+
     def opt_twice(self):
         cmd_list = self.cmd_list
         if self.cage.add_num % 2 == 1:
@@ -123,6 +157,7 @@ class XTB_Optimizer(Optimizer):
 
         # if all jobs are failed or wronged, stop opt
         if os.stat('yes_paths').st_size == 0:
+            self.combine_xtb_log()
             if os.stat('init_yes_paths').st_size == 0:
                 return 0
             else:
@@ -140,6 +175,7 @@ class XTB_Optimizer(Optimizer):
             self.run_a_batch(path_source=self.path_raw_final, path_destination=self.path_opt_final, cmd_list=cmd_list)
             # can deal with wrong here, but not meaningful.
             self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_final, is_init=False)
+            self.combine_xtb_log()
             if os.stat('yes_paths').st_size == 0 and os.stat('init_yes_paths').st_size == 0:
                 return 0
             else:
