@@ -1,4 +1,6 @@
-from autosteper.autosteper import AutoSteper
+import os
+from autosteper.Autosteper import AutoSteper
+
 
 
 para = {
@@ -36,7 +38,7 @@ para = {
             'number_node': 2,
             'cpu_per_node': 8,
             'gpu_per_node': 0,
-            'group_size': 1,
+            'group_size': 5,
             'queue_name': "batch",
             'envs': {
                 "OMP_STACKSIZE": "4G",
@@ -50,14 +52,20 @@ para = {
     'run_para': {
         'start': 1,
         'step': 1,
-        'stop': None,
+        'stop': 2,
         'cutoff_mode': 'value_rank',
         'cutoff_value': 0.037,
-        'cutoff_rank': 200
+        'cutoff_rank': 100
+    },
+    'path_para': {
+        'q_path_num': 200,
+        'q_add_num': 2,
+        'q_low_e_num': 65,
+        'log_low_e_num': 3,
     }
-
 }
 
 
 auto = AutoSteper(para)
 auto.run()
+auto.path_parser.get_path_info()

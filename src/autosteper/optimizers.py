@@ -14,6 +14,8 @@ class Optimizer():
             self.final_cycle = opt_para['final_cycle']
         self.checker = checker
         self.cage = cage
+        self.mode = None
+        self.cmd_list = None
 
     def set_init_folders(self):
         self.path_raw_init = f'raw_{self.init_cycle}'
@@ -26,6 +28,9 @@ class Optimizer():
         os.makedirs(exist_ok=True, name=self.path_raw_final)
         self.path_opt_final = 'opt_final'
         os.makedirs(exist_ok=True, name=self.path_opt_final)
+
+    def run_a_batch(self, path_source: str, path_destination: str, cmd_list: list=None):
+        pass
 
 
 class XTB_Optimizer(Optimizer):
@@ -147,6 +152,8 @@ class XTB_Optimizer(Optimizer):
         cmd_list.extend([f'--cycles {self.init_cycle}'])
         self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, cmd_list=cmd_list)
         del cmd_list[-1]
+
+        print(os.getcwd())
 
         self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
 

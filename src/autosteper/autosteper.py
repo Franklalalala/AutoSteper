@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import pandas as pd
 from autosteper.cage import Cage, name2seq
@@ -6,6 +7,7 @@ from autosteper.checker import Checker
 from autosteper.generator import Generator
 from autosteper.optimizers import XTB_Optimizer
 from autosteper.tools import get_yes_info
+from autosteper.path_parser import Path_Parser
 
 
 class AutoSteper():
@@ -22,6 +24,7 @@ class AutoSteper():
         self.cutoff_mode = para['run_para']['cutoff_mode']
         self.cutoff_rank = para['run_para']['cutoff_rank']
         self.cutoff_value = para['run_para']['cutoff_value']
+        self.path_parser = Path_Parser(path_para=para['path_para'], step=self.step, workbase=para['workbase'], q_cage=self.cage, optimizer=self.optimizer)
 
     def _first_step(self):
         gen_out_path = f'{self.cage.name}_{self.cage.add_num}_addons.out'
@@ -56,7 +59,9 @@ class AutoSteper():
                                                         cage=self.cage,
                                                         prev_xyz_path=prev_xyz_path,
                                                         parent_info=self.all_parent_info,
-                                                        prev_addon_set=prev_addon_set)
+                                                        prev_addon_set=prev_addon_set,
+                                                        parent_name=prev_name
+                                                        )
 
         self.optimizer.set_init_folders()
         self.all_parent_info = {}
@@ -104,6 +109,7 @@ class AutoSteper():
                 if self.stop != None:
                     if self.cage.add_num > self.stop:
                         print("Normal Termination of AutoSteper.")
+                        shutil.rmtree(self.cage.addon_path)
                         break
                 step_status = self._take_a_step()
                 if step_status == 0:
