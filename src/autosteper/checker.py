@@ -135,9 +135,7 @@ class Checker():
         failed_list = []
         wrong_list = []
         init_yes_list = []
-        print(opt_root)
         opt_root = os.path.abspath(opt_root)
-        print(opt_root)
         for a_folder in os.listdir(opt_root):
             if opt_mood == 'xtb':
                 log_path = os.path.join(opt_root, a_folder, 'xtbopt.log')
