@@ -4,9 +4,6 @@ import math
 from autosteper.cage import Cage
 from autosteper.checker import Checker
 from dpdispatcher import Task, Submission, Machine, Resources
-from ase.io import read, write
-from ase.optimize import *
-
 
 
 class Optimizer():
@@ -19,7 +16,6 @@ class Optimizer():
         self.cage = cage
         self.mode = None
         self.cmd_list = None
-        self.calc = None
 
     def set_init_folders(self):
         self.path_raw_init = f'raw_{self.init_cycle}'
@@ -33,7 +29,7 @@ class Optimizer():
         self.path_opt_final = 'opt_final'
         os.makedirs(exist_ok=True, name=self.path_opt_final)
 
-    def run_a_batch(self):
+    def run_a_batch(self, path_source: str, path_destination: str, cmd_list: list=None):
         pass
 
     def opt_twice(self):
@@ -44,10 +40,9 @@ class Optimizer():
 
     def opt(self):
         if self.is_Opt_Twice:
-            status = self.opt_twice()
+            self.opt_twice()
         else:
-            status = self.opt_once()
-        return status
+            self.opt_once()
 
 class XTB_Optimizer(Optimizer):
     def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
@@ -169,15 +164,14 @@ class XTB_Optimizer(Optimizer):
         self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, cmd_list=cmd_list)
         del cmd_list[-1]
 
+        print(os.getcwd())
+
         self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
 
         if os.stat('wrong_paths').st_size != 0:
             if self.deal_wrong_mode == 'complete':
                 # re-opt wrong_path with small sub batch size
                 self.deal_wrong_complete()
-            elif self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
 
         # if all jobs are failed or wronged, stop opt
         if os.stat('yes_paths').st_size == 0:
@@ -192,7 +186,7 @@ class XTB_Optimizer(Optimizer):
             with open('yes_paths', 'r') as f:
                 for a_log in f.readlines():
                     src = os.path.join(os.path.split(a_log)[0], 'xtbopt.xyz')
-                    dst = os.path.join(self.path_raw_final, os.path.basename(os.path.split(a_log)[0]) + '.xyz')
+                    dst = os.path.join(self.path_raw_final, a_log.split('\\')[-2] + '.xyz')
                     os.symlink(src=src, dst=dst)
 
             cmd_list.extend([f'--cycles {self.final_cycle}'])
@@ -238,9 +232,6 @@ class XTB_Optimizer(Optimizer):
             if self.deal_wrong_mode == 'complete':
                 # re-opt wrong_path with small sub batch size
                 self.deal_wrong_complete()
-            elif self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
 
 
         # if all jobs are failed or wronged, stop opt
@@ -251,74 +242,5 @@ class XTB_Optimizer(Optimizer):
 
 
 class ASE_Optimizer(Optimizer):
-    def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
-        super(ASE_Optimizer, self).__init__(opt_para=opt_para, checker=checker, cage=cage)
-        self.calc = opt_para['calculator']
-        self.fmax = opt_para['fmax']
-        self.ase_optimizer = opt_para['ase_optimizer']
-        self.mode = 'ase'
-
-    def run_a_batch(self, path_source: str, path_destination: str, steps: int):
-        cwd_ = os.getcwd()
-        path_source = os.path.abspath(path_source)
-        path_destination = os.path.abspath(path_destination)
-        for a_file in os.listdir(path_source):
-            name = a_file.split('.')[0]
-            sub_opt = os.path.join(path_destination, name)
-            os.makedirs(sub_opt, exist_ok=True)
-            path_a_file = os.path.join(path_source, a_file)
-            shutil.copy(path_a_file, os.path.join(sub_opt, a_file))
-            os.chdir(sub_opt)
-            atoms = read(a_file, format='xyz')
-            atoms.calc = self.calc
-            opt = self.ase_optimizer(atoms, logfile='opt.log')
-            opt.run(steps=steps, fmax=self.fmax)
-            write(filename='opt.xyz', images=atoms, format='xyz')
-        os.chdir(cwd_)
-
-    def opt_once(self):
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, steps=self.init_cycle)
-        self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
-        if os.stat('wrong_paths').st_size != 0:
-            if self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
-        # if all jobs are failed, stop opt
-        if os.stat('yes_paths').st_size == 0 and os.stat('init_yes_paths').st_size == 0:
-            return 0
-        else:
-            return 1
-
-    def opt_twice(self):
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, steps=self.init_cycle)
-        self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
-        if os.stat('wrong_paths').st_size != 0:
-            if self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
-        # if all jobs are failed or wronged, stop opt
-        if os.stat('yes_paths').st_size == 0:
-            if os.stat('init_yes_paths').st_size == 0:
-                return 0
-            else:
-                return 1
-        else:
-            self.set_final_folders()
-
-            with open('yes_paths', 'r') as f:
-                for a_log in f.readlines():
-                    src = os.path.join(os.path.split(a_log)[0], 'opt.xyz')
-                    dst = os.path.join(self.path_raw_final, os.path.basename(os.path.split(a_log)[0]) + '.xyz')
-                    os.symlink(src=src, dst=dst)
-
-            self.run_a_batch(path_source=self.path_raw_final, path_destination=self.path_opt_final, steps=self.final_cycle)
-            # can deal with wrong here, but not meaningful.
-            self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_final, is_init=False)
-            if os.stat('yes_paths').st_size == 0 and os.stat('init_yes_paths').st_size == 0:
-                return 0
-            else:
-                return 1
-
-
-
-
+    def __init__(self):
+        pass

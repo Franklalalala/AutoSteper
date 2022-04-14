@@ -1,11 +1,10 @@
 import os
 import shutil
-
 import pandas as pd
 from autosteper.cage import Cage, name2seq
 from autosteper.checker import Checker
 from autosteper.generator import Generator
-from autosteper.optimizers import XTB_Optimizer
+from autosteper.optimizers import *
 from autosteper.tools import get_yes_info
 from autosteper.path_parser import Path_Parser
 
@@ -15,8 +14,10 @@ class AutoSteper():
         self.cage = Cage(pristine_path=para['pristine_cage'], workbase=para['workbase'])
         self.generator = Generator(para['gen_para'])
         self.checker = Checker(chk_skin=self.generator.skin, group=self.generator.group, cage_size=self.cage.size)
-        if para['mode'] == 'xtb':
+        if para['opt_mode'] == 'xtb':
             self.optimizer = XTB_Optimizer(para['opt_para'], checker=self.checker, cage= self.cage)
+        elif para['opt_mode'] == 'ase':
+            self.optimizer = ASE_Optimizer(para['opt_para'], checker=self.checker, cage= self.cage)
 
         self.start = para['run_para']['start']
         self.stop = para['run_para']['stop']
@@ -27,6 +28,7 @@ class AutoSteper():
         self.path_parser = Path_Parser(path_para=para['path_para'], step=self.step, workbase=para['workbase'], q_cage=self.cage, optimizer=self.optimizer)
 
     def _first_step(self):
+        self.cage.set_add_num(self.start)
         gen_out_path = f'{self.cage.name}_{self.cage.add_num}_addons.out'
         self.generator.gen_seq(cage=self.cage,
                                gen_out_path=gen_out_path,
@@ -38,12 +40,12 @@ class AutoSteper():
                              cage=self.cage,
                              prev_xyz_path=self.cage.pristine_path)
 
-        step_status = self.optimizer.opt_twice()
+
+        step_status = self.optimizer.opt()
         if step_status == 0:
             return 0
         else:
             self.prev_deep_yes = get_yes_info(opt_mode=self.optimizer.mode)
-
         return step_status
 
     def _take_a_step(self):
@@ -63,6 +65,7 @@ class AutoSteper():
                                                         parent_name=prev_name
                                                         )
 
+        self.cage.set_add_num(self.new_add_num)
         self.optimizer.set_init_folders()
         self.all_parent_info = {}
         sub_nauty_path = 'sub_nauty'
@@ -94,22 +97,20 @@ class AutoSteper():
         all_parent_info_df = pd.DataFrame(self.all_parent_info)
         all_parent_info_df.to_pickle('all_parent_info.pickle')
 
-        step_status = self.optimizer.opt_twice()
+        step_status = self.optimizer.opt()
         self.prev_deep_yes = get_yes_info(opt_mode=self.optimizer.mode, all_parent_info=self.all_parent_info)
         return step_status
 
     def run(self):
-        self.cage.set_add_num(self.start)
         step_status = self._first_step()
         if step_status == 0:
             print("AutoSteper failed on first step.")
         else:
             while step_status != 0:
-                self.cage.set_add_num(self.cage.add_num + self.step)
+                self.new_add_num = self.cage.add_num + self.step
                 if self.stop != None:
-                    if self.cage.add_num > self.stop:
+                    if self.new_add_num > self.stop:
                         print("Normal Termination of AutoSteper.")
-                        shutil.rmtree(self.cage.addon_path)
                         break
                 step_status = self._take_a_step()
                 if step_status == 0:

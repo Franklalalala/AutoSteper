@@ -73,7 +73,9 @@ class Path_Parser():
 
         # Get base_e
         if self.optimizer.mode == 'ase':
-            pass
+            atoms = self.q_cage.atoms
+            atoms.calc = self.optimizer.calc
+            self.base_e = atoms.get_potential_energy()[0][0]
         elif self.optimizer.mode == 'xtb':
             opted_xyz = os.path.join('temp_opt', self.q_cage.name, 'xtbopt.xyz')
             if not os.path.exists(opted_xyz):
@@ -90,7 +92,6 @@ class Path_Parser():
         deep_info_path = os.path.join(self.q_cage.workbase, f'{self.q_add_num}addons', 'deep_yes_info.pickle')
         deep_info = pd.read_pickle(deep_info_path)
         Max_q_rank = len(deep_info['energy'])
-        self.q_low_e_num = min(self.q_low_e_num, Max_q_rank)
         self.log_low_e_num = min(self.log_low_e_num, Max_q_rank)
 
         log_path = os.path.join(f'top_{self.log_low_e_num}_isomers.log')
@@ -105,6 +106,7 @@ class Path_Parser():
 
 
         # Query the path of some low e isomers
+        self.q_low_e_num = min(self.q_low_e_num, Max_q_rank)
         for q_rank in range(self.q_low_e_num):
             q_isomer_e = deep_info['energy'][q_rank]
             q_isomer_name = deep_info['name'][q_rank]

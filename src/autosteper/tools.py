@@ -32,8 +32,8 @@ def get_yes_info(opt_mode: str, all_parent_info: dict=None):
     for yes_paths_name in ['init_yes_paths', 'yes_paths']:
         if not os.path.exists(yes_paths_name):
             continue
-        if opt_mode == 'xtb':
-            with open(yes_paths_name, 'r') as f:
+        with open(yes_paths_name, 'r') as f:
+            if opt_mode == 'xtb':
                 for a_log in f.readlines():
                     a_name = a_log.split('\\')[-2]
                     name_list.append(a_name)
@@ -48,18 +48,18 @@ def get_yes_info(opt_mode: str, all_parent_info: dict=None):
                         flat_yes_info.update({a_name: [energy]})
                     else:
                         flat_yes_info.update({a_name: [all_parent_info[a_name][0], energy]})
-        elif opt_mode == 'ase':
-            for a_file in f.readlines():
-                a_file = a_file.strip()
-                with open(a_file, 'r') as xyz_f:
-                    energy_line = xyz_f.readlines()[-1]
-                    # energy = float(energy_line.split()[-2])
-                    energy = float(energy_line.split()[-2].split('*')[0])
-                    energy_list.append(energy)
-                if all_parent_info == None:
-                    flat_yes_info.update({a_name: [energy]})
-                else:
-                    flat_yes_info.update({a_name: [all_parent_info[a_name][0], energy]})
+            elif opt_mode == 'ase':
+                for a_file in f.readlines():
+                    a_file = a_file.strip()
+                    with open(a_file, 'r') as xyz_f:
+                        energy_line = xyz_f.readlines()[-1]
+                        # energy = float(energy_line.split()[-2])
+                        energy = float(energy_line.split()[-2].split('*')[0])
+                        energy_list.append(energy)
+                    if all_parent_info == None:
+                        flat_yes_info.update({a_name: [energy]})
+                    else:
+                        flat_yes_info.update({a_name: [all_parent_info[a_name][0], energy]})
 
     deep_yes_info = pd.DataFrame({'name': name_list, 'energy': energy_list, 'xyz_path': xyz_path_list})
     sorted_deep_yes = deep_yes_info.sort_values(by='energy')
