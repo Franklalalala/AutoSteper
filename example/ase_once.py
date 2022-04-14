@@ -2,10 +2,6 @@ import os
 from autosteper.Autosteper import AutoSteper
 from ase.calculators.emt import EMT
 from ase.optimize import *
-from torchlightmolnet.caculator import torchCaculator
-from torchlightmolnet.lightning.molnet import LightMolNet
-from torchlightmolnet.dataset.atomref import refatoms_xTB, get_refatoms
-from torchlightmolnet import Properties
 
 
 
