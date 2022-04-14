@@ -153,8 +153,8 @@ class Checker():
                     wrong_list.append(str(xyz_path) + '\n')
                     continue
                 self.last_image = read(xyz_path)
+                log_path = os.path.join(opt_root, a_folder, 'opt.log')
                 if is_init:
-                    log_path = os.path.join(opt_root, a_folder, 'opt.log')
                     with open(log_path, 'r') as file:
                         nimages = len(file.readlines()) - 2
 
