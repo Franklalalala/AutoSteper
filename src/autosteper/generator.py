@@ -13,14 +13,14 @@ pre_def_geom_para = {
     'len_cage_F': 1.37,
     'len_cage_H': 1.10,
     'len_cage_CH3': 1.54,
-    'len_cage_CF3': 1.43,
-    'len_cage_OH': 1.42,
+    'len_cage_CF3': 1.55,
+    'len_cage_OH': 1.41,
     'len_CH3': 1.09,
-    'len_CF3': 1.37,
-    'len_OH': 0.96,
-    'ang_CH3': 109,
-    'ang_CF3': 109,
-    'ang_OH': 105
+    'len_CF3': 1.33,
+    'len_OH': 0.97,
+    'ang_CH3': 110,
+    'ang_CF3': 112,
+    'ang_OH': 108
 }
 
 
@@ -36,10 +36,12 @@ class Generator():
             self.geom_para = gen_para['geom_para']
 
 
-    def gen_seq(self, cage: Cage, mode: str, gen_out_path: str, prev_seq: str=None):
+    def gen_seq(self, cage: Cage, mode: str, gen_out_path: str, prev_seq: str=None, random_num: int=None):
         commandline = f'{self.gen_core_path} --graph6str {cage.graph6str} --addnum {cage.add_num} -o {gen_out_path} -m {mode} '
         if mode == 'step':
             commandline = commandline + prev_seq
+        elif mode == 'random':
+            commandline = commandline + f' -r {random_num}'
         os.system(commandline)
 
 

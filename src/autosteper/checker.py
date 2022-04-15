@@ -23,20 +23,18 @@ class Checker():
                 if len_adj_arr == 4:
                     flag = 0
                     for ii in adj_array:
-                        if self.last_image[ii].symbol == self.group or  self.last_image[ii].symbol == 'H':
+                        if self.last_image[ii].symbol in [self.group, 'H', 'O']:
                             flag = 1
                             break
                     if flag:
                         continue
                     else:
-
-                        aa=1
                         return 3
                 elif len_adj_arr < 3:
                     return 4
                 elif len_adj_arr == 3:
                     for ii in adj_array:
-                        if self.last_image[ii].symbol == self.group or self.last_image[ii].symbol == 'H':
+                        if self.last_image[ii].symbol in [self.group, 'H', 'O']:
                             return 4
             elif len_adj_arr == 2 and self.last_image[adj_array[0]].symbol == 'C' and self.last_image[adj_array[1]].symbol == 'C':
                 return 5
@@ -128,7 +126,7 @@ class Checker():
         # status_code == 1 means at least one addon atom breaks the bond with the cage and becomes a radical during optimization.
         # status_code == 2 means at least one addon atom breaks the bond with the original addon site and changed to another during optimization.
         # status_code == 3 means at least one 3 membered carbon ring formed during optimization, which is extremely unstable.
-        # status_code == 4 means at least one carbon atom has 2 neighbors, which means the cage is broken.
+        # status_code == 4 means at least one carbon atom only has 2 neighbor carbons or less, which means the cage is broken.
         # status_code == 5 means at least one addon atom binds with 2 carbon atoms.
         # status_code == 6 means the inner intactness of at least one addon group has broken.
         yes_list = []

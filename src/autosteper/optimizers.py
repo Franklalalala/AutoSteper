@@ -13,6 +13,7 @@ class Optimizer():
     def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
         self.init_cycle = opt_para['init_cycle']
         self.is_Opt_Twice = opt_para['is_Opt_Twice']
+        self.deal_wrong_mode = opt_para['deal_wrong_mode']
         if self.is_Opt_Twice:
             self.final_cycle = opt_para['final_cycle']
         self.checker = checker
@@ -57,7 +58,6 @@ class XTB_Optimizer(Optimizer):
         self.out_list = opt_para['out_list']
         self.resrc_para = opt_para['resrc_para']
         self.mach_para = opt_para['mach_para']
-        self.deal_wrong_mode = opt_para['deal_wrong_mode']
         self.sub_batch_size = opt_para['sub_batch_size']
         self.mode = 'xtb'
 
@@ -178,6 +178,8 @@ class XTB_Optimizer(Optimizer):
             elif self.deal_wrong_mode == 'report':
                 print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
                 return 0
+            elif self.deal_wrong_mode == 'tough':
+                return 2
 
         # if all jobs are failed or wronged, stop opt
         if os.stat('yes_paths').st_size == 0:
@@ -241,6 +243,8 @@ class XTB_Optimizer(Optimizer):
             elif self.deal_wrong_mode == 'report':
                 print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
                 return 0
+            elif self.deal_wrong_mode == 'tough':
+                return 2
 
 
         # if all jobs are failed or wronged, stop opt
@@ -283,6 +287,8 @@ class ASE_Optimizer(Optimizer):
             if self.deal_wrong_mode == 'report':
                 print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
                 return 0
+            elif self.deal_wrong_mode == 'tough':
+                return 2
         # if all jobs are failed, stop opt
         if os.stat('yes_paths').st_size == 0 and os.stat('init_yes_paths').st_size == 0:
             return 0
@@ -296,6 +302,8 @@ class ASE_Optimizer(Optimizer):
             if self.deal_wrong_mode == 'report':
                 print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
                 return 0
+            elif self.deal_wrong_mode == 'tough':
+                return 2
         # if all jobs are failed or wronged, stop opt
         if os.stat('yes_paths').st_size == 0:
             if os.stat('init_yes_paths').st_size == 0:
