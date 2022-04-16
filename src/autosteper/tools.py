@@ -38,7 +38,7 @@ def get_yes_info(opt_mode: str, all_parent_info: dict=None):
                 name_list.append(a_name)
                 a_xyz_path = a_log[:-4] + 'xyz'
                 xyz_path_list.append(a_xyz_path)
-                if opt_mode == 'xtb':
+                if opt_mode in ['xtb', 'gaussian']:
                     with open(a_xyz_path, 'r') as xyz_f:
                         xyz_f.readline()
                         energy_line = xyz_f.readline()

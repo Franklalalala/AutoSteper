@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 from ase import Atoms, Atom
 from ase.io import read, write
+from ase.io.gaussian import read_gaussian_out
 
 
 hartree2kjmol = Hartree / (kJ / mol)
@@ -87,6 +88,16 @@ class Path_Parser():
                 f.readline()
                 e_line = f.readline()
                 self.base_e = float(e_line.split()[1])
+        elif self.optimizer.mode == 'gaussian':
+            log_path = os.path.join('temp_opt', self.q_cage.name, 'gau.log')
+            if not os.path.exists(log_path):
+                os.makedirs(name='temp_raw', exist_ok=True)
+                os.symlink(src=self.q_cage.pristine_path, dst=os.path.join('temp_raw', self.q_cage.name + '.xyz'))
+                os.makedirs(name='temp_opt', exist_ok=True)
+                self.optimizer.run_a_batch(path_source='temp_raw', path_destination='temp_opt', cmd_list=self.optimizer.cmd_list, cycles=self.optimizer.init_cycle)
+            log_path = os.path.join('temp_opt', self.q_cage.name, 'gau.log')
+            self.last_image = read_gaussian_out(fd=log_path)[-1]
+            self.base_e = self.last_image.get_potential_energy()
 
         # Dump low e isomers to a log
         deep_info_path = os.path.join(self.q_cage.workbase, f'{self.q_add_num}addons', 'deep_yes_info.pickle')
@@ -171,6 +182,8 @@ class Path_Parser():
                         xyz_filename = 'xtbopt.xyz'
                     elif self.optimizer.mode == 'ase':
                         xyz_filename = 'opt.xyz'
+                    elif self.optimizer.mode == 'gaussian':
+                        xyz_filename = 'gau.xyz'
 
                     opt_path = os.path.join(addon_path, f'opt_final', name, xyz_filename)
                     if os.path.exists(opt_path):

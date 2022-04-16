@@ -1,10 +1,11 @@
 import os
 from autosteper.tools import read_xtb_log
 from autosteper.cage import name2seq
-from ase.io import read
+from ase.io import read, write
 from ase.neighborlist import NeighborList, natural_cutoffs, build_neighbor_list
 from ase.atoms import Atoms
 import numpy as np
+from ase.io.gaussian import read_gaussian_out
 
 
 class Checker():
@@ -155,6 +156,21 @@ class Checker():
                 if is_init:
                     with open(log_path, 'r') as file:
                         nimages = len(file.readlines()) - 2
+            elif opt_mood == 'gaussian':
+                log_path = os.path.join(opt_root, a_folder, 'gau.log')
+                if not os.path.exists(log_path):
+                    wrong_list.append(os.path.join(opt_root, a_folder, f'{a_folder}.xyz') + '\n')
+                    continue
+                traj = read_gaussian_out(fd=log_path) # The read_gaussian_out function is slightly changed to get all traj.
+                self.last_image = traj[-1]
+                if is_init:
+                    nimages = len(traj)
+                new_log_path = os.path.join(opt_root, a_folder, 'gau_simple.log')
+                last_xyz_path = os.path.join(opt_root, a_folder, 'gau.xyz')
+                if not os.path.exists(new_log_path):
+                    write(filename=new_log_path, images=traj, format='xyz')
+                    e = self.last_image.get_potential_energy()
+                    write(filename=last_xyz_path, images=self.last_image, format='xyz', comment=f'Energy: {str(e)}')
 
             opted_addonset, status_code = self.check_last_image()
             _, init_addonset = name2seq(a_folder, cage_size=self.cage_size)

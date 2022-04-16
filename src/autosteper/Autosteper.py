@@ -16,7 +16,8 @@ class AutoSteper():
             self.optimizer = XTB_Optimizer(para['opt_para'], checker=self.checker, cage= self.cage)
         elif para['opt_mode'] == 'ase':
             self.optimizer = ASE_Optimizer(para['opt_para'], checker=self.checker, cage= self.cage)
-
+        elif para['opt_mode'] == 'gaussian':
+            self.optimizer = Gaussian_Optimizer(para['opt_para'], checker=self.checker, cage= self.cage)
         if 'run_para' in para.keys():
             self.start = para['run_para']['start']
             self.stop = para['run_para']['stop']
