@@ -1,6 +1,6 @@
 import os
 from autosteper.tools import read_xtb_log
-from autosteper.cage import name2seq
+from autosteper.cage import name2seq, Cage
 from ase.io import read, write
 from ase.neighborlist import NeighborList, natural_cutoffs, build_neighbor_list
 from ase.atoms import Atoms
@@ -9,10 +9,10 @@ from ase.io.gaussian import read_gaussian_out
 
 
 class Checker():
-    def __init__(self, chk_skin: float, group: str, cage_size: int):
+    def __init__(self, chk_skin: float, group: str, cage: Cage):
         self.skin = chk_skin
         self.group = group
-        self.cage_size = cage_size
+        self.cage = cage
 
 
     def check_ADJ(self, dok_matrix):
@@ -20,7 +20,7 @@ class Checker():
             dok_adj = dok_matrix[idx]
             adj_array = dok_adj.tocoo().col
             len_adj_arr = len(adj_array)
-            if an_atom.symbol == 'C':
+            if an_atom.symbol == self.cage.symbol:
                 if len_adj_arr == 4:
                     flag = 0
                     for ii in adj_array:
@@ -37,7 +37,7 @@ class Checker():
                     for ii in adj_array:
                         if self.last_image[ii].symbol in [self.group, 'H', 'O']:
                             return 4
-            elif len_adj_arr == 2 and self.last_image[adj_array[0]].symbol == 'C' and self.last_image[adj_array[1]].symbol == 'C':
+            elif len_adj_arr == 2 and (self.last_image[adj_array[0]].symbol == self.last_image[adj_array[1]].symbol == self.cage.symbol):
                 return 5
             elif len_adj_arr == 0:
                 return 1
@@ -64,7 +64,7 @@ class Checker():
                     adj_array = dok_adj.tocoo().col
                     if not len(adj_array) == 1:
                         return 6, None
-                elif idx > self.cage_size - 1:
+                elif idx > self.cage.size - 1:
                     an_atom.symbol = 'H'
                     dummy_image.append(an_atom)
                 else:
@@ -77,7 +77,7 @@ class Checker():
                     adj_array = dok_adj.tocoo().col
                     if not len(adj_array) == 1:
                         return 6, None
-                elif idx > self.cage_size - 1:
+                elif idx > self.cage.size - 1:
                     an_atom.symbol = 'H'
                     dummy_image.append(an_atom)
                 else:
@@ -95,7 +95,7 @@ class Checker():
         if self.group in ['OH', 'Cl', 'F', 'H']:
             cutoffs = natural_cutoffs(self.last_image)
         else:
-            cutoffs = [0.76] * len(self.last_image)
+            cutoffs = [natural_cutoffs(self.cage.atoms)[0]] * len(self.last_image)
         neighborlist = NeighborList(cutoffs, skin=self.skin, bothways=True, self_interaction=False)
         neighborlist.update(self.last_image)
         dok_matrix = neighborlist.get_connectivity_matrix()
@@ -111,7 +111,7 @@ class Checker():
                 symbol_1 = self.last_image[bond[1]].symbol
                 if not symbol_0 == symbol_1:
                     if bond[0] < bond[1]:
-                        if symbol_0 == 'C':
+                        if symbol_0 == self.cage.symbol:
                             carbon_idx = bond[0]
                             addon_idx = bond[1]
                         else:
@@ -173,7 +173,7 @@ class Checker():
                     write(filename=last_xyz_path, images=self.last_image, format='xyz', comment=f'Energy: {str(e)}')
 
             opted_addonset, status_code = self.check_last_image()
-            _, init_addonset = name2seq(a_folder, cage_size=self.cage_size)
+            _, init_addonset = name2seq(a_folder, cage_size=self.cage.size)
             if status_code:
                 failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
             else:

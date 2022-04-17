@@ -11,7 +11,7 @@ class AutoSteper():
     def __init__(self, para: dict):
         self.cage = Cage(pristine_path=para['pristine_cage'], workbase=para['workbase'])
         self.generator = Generator(para['gen_para'])
-        self.checker = Checker(chk_skin=self.generator.skin, group=self.generator.group, cage_size=self.cage.size)
+        self.checker = Checker(chk_skin=self.generator.skin, group=self.generator.group, cage=self.cage)
         if para['opt_mode'] == 'xtb':
             self.optimizer = XTB_Optimizer(para['opt_para'], checker=self.checker, cage= self.cage)
         elif para['opt_mode'] == 'ase':

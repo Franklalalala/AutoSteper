@@ -64,9 +64,6 @@ class Generator():
                     sorted_dist = sorted(map_dict.keys())
                     for ii in sorted_dist[0:3]:
                         ADJ_coords.append(old_coords[map_dict[ii]])
-                elif len(adj_array) < 3:
-                    raise RuntimeError(f'The degree of carbon {i} in cage {prev_xyz_path} are {len(adj_array)},'
-                                       f'please check this cage.')
                 else:
                     for ii in adj_array:
                         ADJ_coords.append(old_coords[ii])

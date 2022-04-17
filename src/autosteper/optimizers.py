@@ -208,16 +208,16 @@ class XTB_Optimizer(Optimizer):
             for an_init in os.listdir(f'opt_{self.init_cycle}'):
                 if an_init not in os.listdir('opt_final'):
                     os.symlink(
-                        src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.xyz'),
+                        src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
                         dst=os.path.join('combined_log', f'{an_init}.log')
                     )
                 else:
                     init_path = os.path.join('combined_log', f'{an_init}.log')
                     shutil.copy(
-                        src=os.path.join(f'opt_{self.init_cycle}', an_init, 'xtbopt.xyz'),
+                        src=os.path.join(f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
                         dst=init_path
                     )
-                    final_path = os.path.join('opt_final', an_init, 'xtbopt.xyz')
+                    final_path = os.path.join('opt_final', an_init, 'xtbopt.log')
 
                     with open(init_path, 'a') as init_file, open(final_path, 'r') as final_file:
                         atom_num = int(final_file.readline().strip())
@@ -230,7 +230,7 @@ class XTB_Optimizer(Optimizer):
         else:
             for an_init in os.listdir(f'opt_{self.init_cycle}'):
                 os.symlink(
-                    src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.xyz'),
+                    src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
                     dst=os.path.join('combined_log', f'{an_init}.log')
                 )
 

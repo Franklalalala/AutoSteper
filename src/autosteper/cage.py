@@ -15,6 +15,9 @@ class Cage():
         os.makedirs(self.workbase, exist_ok=True)
         # parameter for standard name
         self.atoms = read(pristine_path, format=fmt[1:])
+        symbol_set = self.atoms.symbols.species()
+        assert len(symbol_set) == 1, 'Currently only support pure cages that contain only one element.'
+        self.symbol = self.atoms[0].symbol
         self.centre = self.atoms.get_positions().mean(axis=0)
         self.size = len(self.atoms)
         self.max_add_36_size = len(to_36_base(int('1'*self.size, 2)))
