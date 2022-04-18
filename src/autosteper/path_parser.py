@@ -37,13 +37,16 @@ class Path_Parser():
 
     def get_path_info(self):
         os.chdir(self.workbase)
-        def _get_e_area(e_list: list):
+        def _get_e_area_triangle(e_list: list):
             e_array = np.array(e_list)
-            for i in range(len(e_array)):
-                e_array = e_array - self.base_e
-            e_area = e_array[0] / 2
-            for i in range(1, len(e_array)):
+            e_array = e_array - self.base_e
+            e_area = e_array[1] / 2
+            for i in range(2, len(e_array)):
                 e_area += (e_array[i] + e_array[i - 1]) / 2
+            return e_area * hartree2kjmol
+
+        def _get_e_area(e_list: list):
+            e_area = sum(e_list)
             return e_area
 
         def _get_pathway_unit(idx: int, pathway: list, cage_name: str, e_list: list, name_list: list):
@@ -52,7 +55,7 @@ class Path_Parser():
                 final_pathway = [init_pathway, addon_set, *pathway]
                 q_isomer_e = flat_yes_list[idx][cage_name][0]
                 final_e_list = [self.base_e, q_isomer_e, *e_list]
-                final_name_list = [self.q_cage.pristine_path, cage_name, *name_list]
+                final_name_list = [self.q_cage.name, cage_name, *name_list]
 
                 e_areas.append(_get_e_area(final_e_list))
                 pathways.append(final_pathway)
@@ -122,7 +125,7 @@ class Path_Parser():
             q_isomer_e = deep_info['energy'][q_rank]
             q_isomer_name = deep_info['name'][q_rank]
             q_isomer_atoms = read(deep_info['xyz_path'][q_rank])
-            q_rank_workbase = os.path.join(self.workbase, f'rank_{q_rank}')
+            q_rank_workbase = os.path.join(self.workbase, f'isomer_rank_{q_rank}')
             os.makedirs(exist_ok=True, name=q_rank_workbase)
             os.chdir(q_rank_workbase)
             write(filename=q_isomer_name + '.xyz', images=q_isomer_atoms, format='xyz', comment=str(q_isomer_e))
@@ -149,6 +152,7 @@ class Path_Parser():
             sorted_info.to_pickle(info_path)
 
             # Get relatively energy info
+            e_lists = sorted_info['e_list']
             e_array = np.array(e_lists[0])
             for i in e_lists[1:]:
                 e_array = np.vstack((e_array, np.array(i)))
@@ -164,20 +168,19 @@ class Path_Parser():
 
             rel_e_array = rel_e_array * hartree2kjmol
 
-            self.q_path_num = min(self.q_path_num, len(e_lists))
             # Dump path related xyz file
-            for path_rank in range(self.q_path_num):
+            for path_rank in range(min(self.q_path_num, len(e_lists))):
                 name_list = sorted_info['name'][path_rank]
-                one_path_workbase = os.path.join(q_rank_workbase, str(path_rank))
+                one_path_workbase = os.path.join(q_rank_workbase, f'path_rank_{path_rank}')
                 os.makedirs(exist_ok=True, name=one_path_workbase)
                 os.chdir(one_path_workbase)
-                log_path = f'rank_{path_rank}_root.log'
+                log_path = f'path_rank_{path_rank}_root.log'
                 write(filename=log_path, images=self.q_cage.atoms, format='xyz', append=True)
                 for idx, name in enumerate(name_list):
                     if idx == 0:
                         continue
                     addon_path = os.path.join(self.q_cage.workbase, f'{self.step * idx}addons')
-                    new_path = f'{name}_step_{self.step * (idx + 1) - 1}.xyz'
+                    new_path = f'{name}_addon_{self.step * (idx + 1) - 1}.xyz'
                     if self.optimizer.mode == 'xtb':
                         xyz_filename = 'xtbopt.xyz'
                     elif self.optimizer.mode == 'ase':
@@ -195,15 +198,11 @@ class Path_Parser():
                     write(filename=log_path, images=atoms, format='xyz', append=True)
 
             # Simple plot
-            x = np.linspace(start=0, stop=num_steps - 1, num=num_steps)
-            fig = plt.figure()
-            for i in range(self.q_path_num):
-                plt.plot(rel_e_array[i], label=f'rank_{i}')
-                plt.scatter(x=x, y=rel_e_array[i], label=f'rank_{i}', marker='+')
-            plt.ylabel('Relative energy (kj/mol)')
+            fig = plt.figure(dpi=400)
+            cmap = sns.light_palette((260, 75, 60), input="husl")
+            sns.heatmap(rel_e_array, annot=True, cmap=cmap, linewidths=.5)
+            plt.ylabel('Path rank.')
             plt.xlabel('Addon number.')
-            plt.legend(loc='best')
-            plt.savefig(os.path.join(q_rank_workbase, f'relative_energy_rank_{q_rank}.png'))
-            np.save(file=os.path.join(q_rank_workbase, f'relative_energy_rank_{q_rank}.npy'), arr=rel_e_array)
-
-
+            plt.title('Path relative energy (kj/mol).')
+            plt.savefig(os.path.join(q_rank_workbase, f'Path_relative_energy.png'))
+            np.save(file=os.path.join(q_rank_workbase, f'Path_relative_energy.npy'), arr=rel_e_array)
