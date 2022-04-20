@@ -37,7 +37,9 @@ class Checker():
                     for ii in adj_array:
                         if self.last_image[ii].symbol in [self.group, 'H', 'O']:
                             return 4
-            elif len_adj_arr == 2 and (self.last_image[adj_array[0]].symbol == self.last_image[adj_array[1]].symbol == self.cage.symbol):
+                elif len_adj_arr > 4:
+                    return 6
+            elif len_adj_arr >= 2:
                 return 5
             elif len_adj_arr == 0:
                 return 1
@@ -53,7 +55,7 @@ class Checker():
                     dok_adj = dok_matrix[idx]
                     adj_array = dok_adj.tocoo().col
                     if not len(adj_array) == 1:
-                        return 6, None
+                        return 7, None
                 else:
                     dummy_image.append(an_atom)
 
@@ -63,7 +65,7 @@ class Checker():
                     dok_adj = dok_matrix[idx]
                     adj_array = dok_adj.tocoo().col
                     if not len(adj_array) == 1:
-                        return 6, None
+                        return 7, None
                 elif idx > self.cage.size - 1:
                     an_atom.symbol = 'H'
                     dummy_image.append(an_atom)
@@ -76,7 +78,7 @@ class Checker():
                     dok_adj = dok_matrix[idx]
                     adj_array = dok_adj.tocoo().col
                     if not len(adj_array) == 1:
-                        return 6, None
+                        return 7, None
                 elif idx > self.cage.size - 1:
                     an_atom.symbol = 'H'
                     dummy_image.append(an_atom)
@@ -112,12 +114,12 @@ class Checker():
                 if not symbol_0 == symbol_1:
                     if bond[0] < bond[1]:
                         if symbol_0 == self.cage.symbol:
-                            carbon_idx = bond[0]
+                            cage_element_idx = bond[0]
                             addon_idx = bond[1]
                         else:
-                            carbon_idx = bond[1]
+                            cage_element_idx = bond[1]
                             addon_idx = bond[0]
-                        map_dict.update({addon_idx: carbon_idx})
+                        map_dict.update({addon_idx: cage_element_idx})
             addon_set = set(map_dict.values())
             return addon_set, None
 
@@ -126,10 +128,11 @@ class Checker():
         # status_code == None means the topology stays unchanged during optimization.
         # status_code == 1 means at least one addon atom breaks the bond with the cage and becomes a radical during optimization.
         # status_code == 2 means at least one addon atom breaks the bond with the original addon site and changed to another during optimization.
-        # status_code == 3 means at least one 3 membered carbon ring formed during optimization, which is extremely unstable.
+        # status_code == 3 means at least one 3 membered carbon ring formed during optimization, which is extremely unstable. (carbon for instance, this can be changed for other elements.)
         # status_code == 4 means at least one carbon atom only has 2 neighbor carbons or less, which means the cage is broken.
-        # status_code == 5 means at least one addon atom binds with 2 carbon atoms.
-        # status_code == 6 means the inner intactness of at least one addon group has broken.
+        # status_code == 5 means at least one addon atom binds with 2 or more atoms.
+        # status_code == 6 means at least one carbon atom has 5 or more neighbors, which means a small cluster is formed.
+        # status_code == 7 means the inner intactness of at least one addon group has broken.
         yes_list = []
         failed_list = []
         wrong_list = []
