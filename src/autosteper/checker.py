@@ -94,7 +94,7 @@ class Checker():
             group_status, self.last_image = self.check_group_intactness()
             if group_status:
                 return None, group_status
-        if self.group in ['OH', 'Cl', 'F', 'H']:
+        if self.group in ['OH', 'Cl', 'F', 'H', 'Br']:
             cutoffs = natural_cutoffs(self.last_image)
         else:
             cutoffs = [natural_cutoffs(self.cage.atoms)[0]] * len(self.last_image)

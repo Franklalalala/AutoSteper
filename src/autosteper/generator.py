@@ -10,6 +10,7 @@ from autosteper.tools import rotate_around_axis
 
 pre_def_geom_para = {
     'len_cage_Cl': 1.81,
+    'len_cage_Br': 2.00,
     'len_cage_F': 1.37,
     'len_cage_H': 1.10,
     'len_cage_CH3': 1.54,
@@ -75,7 +76,7 @@ class Generator():
                 else:
                     addon_coord_0 = old_coords[i] - normal_vec * self.geom_para[f'len_cage_{self.group}']
 
-                if self.group in ['Cl', 'F', 'H']:
+                if self.group in ['Cl', 'F', 'H', 'Br']:
                     new_atom_0 = Atom(symbol=self.group, position=addon_coord_0)
                     old_cage.append(new_atom_0)
                 else:

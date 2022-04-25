@@ -130,7 +130,7 @@ class XTB_Optimizer(Optimizer):
                         f.write(str(e) + '\n' + str(task_list) + '\n')
 
     def opt_twice(self):
-        cmd_list = self.cmd_list
+        cmd_list = self.cmd_list.copy()
         if self.cage.add_num % 2 == 1:
             cmd_list.append('--uhf 1')
         cmd_list.extend([f'--cycles {self.init_cycle}'])
@@ -176,7 +176,7 @@ class XTB_Optimizer(Optimizer):
                 return 1
 
     def opt_once(self):
-        cmd_list = self.cmd_list
+        cmd_list = self.cmd_list.copy()
         if self.cage.add_num % 2 == 1:
             cmd_list.append('--uhf 1')
         cmd_list.extend([f'--cycles {self.init_cycle}'])
@@ -420,7 +420,7 @@ class Gaussian_Optimizer(Optimizer):
             self.mult = 2
         else:
             self.mult = 1
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, cmd_list=self.cmd_list, cycles=self.init_cycle)
+        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, cmd_list=self.cmd_list.copy(), cycles=self.init_cycle)
         self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
         if os.stat('wrong_paths').st_size != 0:
             if self.deal_wrong_mode == 'report':
