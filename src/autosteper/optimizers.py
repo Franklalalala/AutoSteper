@@ -316,8 +316,8 @@ class ASE_Optimizer(Optimizer):
             res_list[i] = subprocess.Popen(f'taskset -c {start_node}-{end_node} python {pll_file_name}', shell=True)
         for a_proc in res_list:
             a_proc.wait()
-        shutil.rmtree(path_temp)
         os.chdir(cwd_)
+        shutil.rmtree(path_temp)
 
     def opt_once(self):
         raw_num = len(os.listdir(self.path_raw_init))
