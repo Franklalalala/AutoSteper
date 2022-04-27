@@ -132,7 +132,7 @@ class Path_Parser():
             init_pathway = {0}
             flat_yes_list = []
             for i in range(self.step, self.q_add_num + self.step, self.step):
-                addon_path = os.path.join(self.q_cage.workbase, f'{i}addons')
+                addon_path = os.path.join(self.q_cage.workbase, f'{i * self.step}addons')
                 a_flat_yes_info = pd.read_pickle(os.path.join(addon_path, 'flat_yes_info.pickle'))
                 flat_yes_list.append(a_flat_yes_info)
 
@@ -156,16 +156,15 @@ class Path_Parser():
             e_array = np.array(e_lists[0])
             for i in e_lists[1:]:
                 e_array = np.vstack((e_array, np.array(i)))
-            rel_e_array = np.ones_like(e_array)
 
             if len(e_array.shape) == 1:
                 print(f'There are only one root for rank {q_rank}.')
                 continue
 
+            rel_e_array = np.ones_like(e_array)
             num_steps = e_array.shape[-1]
             for i in range(num_steps):
                 rel_e_array[:, i] = e_array[:, i] - min(e_array[:, i])
-
             rel_e_array = rel_e_array * hartree2kjmol
 
             # Dump path related xyz file
@@ -197,12 +196,31 @@ class Path_Parser():
                     atoms = read(new_path, format='xyz')
                     write(filename=log_path, images=atoms, format='xyz', append=True)
 
-            # Simple plot
-            fig = plt.figure(dpi=400)
-            cmap = sns.light_palette((260, 75, 60), input="husl")
+            # Plot relative energy for path rank
+            fig_1 = plt.figure(dpi=400)
+            cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
             sns.heatmap(rel_e_array, annot=True, cmap=cmap, linewidths=.5)
             plt.ylabel('Path rank.')
             plt.xlabel('Addon number.')
             plt.title('Path relative energy (kj/mol).')
             plt.savefig(os.path.join(q_rank_workbase, f'Path_relative_energy.png'))
             np.save(file=os.path.join(q_rank_workbase, f'Path_relative_energy.npy'), arr=rel_e_array)
+
+            # Plot relative energy for isomers.
+            isomer_rel_e = np.zeros_like(e_array)
+            for i in range(1, num_steps):
+                deep_info_path = os.path.join(self.q_cage.workbase, f'{self.step * i}addons', 'deep_yes_info.pickle')
+                deep_info = pd.read_pickle(deep_info_path)
+                isomer_min = deep_info['energy'][0]
+                isomer_rel_e[:, i] = e_array[:, i] - isomer_min
+            isomer_rel_e = isomer_rel_e * hartree2kjmol
+
+            # Simple plot
+            fig_2 = plt.figure(dpi=400)
+            cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
+            sns.heatmap(isomer_rel_e, annot=True, cmap=cmap, linewidths=.5)
+            plt.ylabel('Path rank.')
+            plt.xlabel('Addon number.')
+            plt.title('Isomer relative energy (kj/mol).')
+            plt.savefig(os.path.join(q_rank_workbase, f'Isomer_relative_energy.png'))
+            np.save(file=os.path.join(q_rank_workbase, f'Isomer_relative_energy.npy'), arr=isomer_rel_e)
