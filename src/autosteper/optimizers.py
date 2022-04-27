@@ -260,9 +260,6 @@ class XTB_Optimizer(Optimizer):
 class ASE_Optimizer(Optimizer):
     def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
         super(ASE_Optimizer, self).__init__(opt_para=opt_para, checker=checker, cage=cage)
-        self.calc = opt_para['calculator']
-        self.fmax = opt_para['fmax']
-        self.ase_optimizer = opt_para['ase_optimizer']
         self.is_pll = opt_para['is_pll']
         if self.is_pll:
             if self.is_Opt_Twice:
@@ -273,6 +270,10 @@ class ASE_Optimizer(Optimizer):
             self.num_worker = opt_para['pll_para']['num_worker']
             self.cpu_per_worker = opt_para['pll_para']['cpu_per_worker']
             self.base_node = opt_para['pll_para']['base_node']
+        else:
+            self.calc = opt_para['calculator']
+            self.fmax = opt_para['fmax']
+            self.ase_optimizer = opt_para['ase_optimizer']
         self.mode = 'ase'
 
     def run_a_batch(self, path_source: str, path_destination: str, steps: int):
