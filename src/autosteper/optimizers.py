@@ -263,6 +263,16 @@ class ASE_Optimizer(Optimizer):
         self.calc = opt_para['calculator']
         self.fmax = opt_para['fmax']
         self.ase_optimizer = opt_para['ase_optimizer']
+        self.is_pll = opt_para['is_pll']
+        if self.is_pll:
+            if self.is_Opt_Twice:
+                self.pll_unit_init = opt_para['pll_para']['pll_unit_init']
+                self.pll_unit_final = opt_para['pll_para']['pll_unit_final']
+            else:
+                self.pll_unit_file = opt_para['pll_para']['pll_unit_file']
+            self.num_worker = opt_para['pll_para']['num_worker']
+            self.cpu_per_worker = opt_para['pll_para']['cpu_per_worker']
+            self.base_node = opt_para['pll_para']['base_node']
         self.mode = 'ase'
 
     def run_a_batch(self, path_source: str, path_destination: str, steps: int):
@@ -283,8 +293,38 @@ class ASE_Optimizer(Optimizer):
             write(filename='opt.xyz', images=atoms, format='xyz')
         os.chdir(cwd_)
 
+    def run_a_batch_parallel(self, path_source: str, raw_num: int):
+        cwd_ = os.getcwd().copy()
+        num_per_worker = math.ceil(raw_num / self.parallel_num)
+        res_list = [None] * self.parallel_num
+        path_temp = os.path.join(cwd_, 'temp')
+        os.makedirs(path_temp, exist_ok=True)
+        for i in range(self.parallel_num):
+            os.chdir(path_temp)
+            cursor = i * num_per_worker
+            sub_raw = str(i)
+            os.makedirs(sub_raw, exist_ok=True)
+            os.chdir(sub_raw)
+            pll_file_name = os.path.basename(self.pll_unit_file)
+            shutil.copy(src=self.pll_unit_file, dst=pll_file_name)
+            sub_raw_xyz = 'xyz'
+            os.makedirs(sub_raw_xyz, exist_ok=True)
+            for a_raw_xyz in os.listdir(path_source)[cursor: cursor + num_per_worker]:
+                shutil.copy(src=os.path.join(path_source, a_raw_xyz), dst=os.path.join(sub_raw_xyz, a_raw_xyz))
+            start_node = self.base_node + self.task_per_node * i
+            end_node = self.base_node + self.task_per_node * (i + 1) - 1
+            res_list[i] = subprocess.Popen(f'taskset -c {start_node}-{end_node} python {pll_file_name}', shell=True)
+        for a_proc in res_list:
+            a_proc.wait()
+        shutil.rmtree(path_temp)
+        os.chdir(cwd_)
+
     def opt_once(self):
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, steps=self.init_cycle)
+        raw_num = len(os.listdir(self.path_raw_init))
+        if self.is_pll and raw_num >= self.num_worker:
+            self.run_a_batch_parallel(path_source=self.path_raw_init, raw_num=raw_num)
+        else:
+            self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, steps=self.init_cycle)
         self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
         if os.stat('wrong_paths').st_size != 0:
             if self.deal_wrong_mode == 'report':
