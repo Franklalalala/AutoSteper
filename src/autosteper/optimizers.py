@@ -8,6 +8,7 @@ from ase.io import read, write
 from ase.optimize import *
 from ase.io import read
 from ase.io.gaussian import write_gaussian_in
+import subprocess
 
 
 class Optimizer():
@@ -295,12 +296,13 @@ class ASE_Optimizer(Optimizer):
         os.chdir(cwd_)
 
     def run_a_batch_parallel(self, path_source: str, raw_num: int):
-        cwd_ = os.getcwd().copy()
-        num_per_worker = math.ceil(raw_num / self.parallel_num)
-        res_list = [None] * self.parallel_num
+        path_source = os.path.abspath(path_source)
+        cwd_ = os.getcwd()
+        num_per_worker = math.ceil(raw_num / self.num_worker)
+        res_list = [None] * self.num_worker
         path_temp = os.path.join(cwd_, 'temp')
         os.makedirs(path_temp, exist_ok=True)
-        for i in range(self.parallel_num):
+        for i in range(self.num_worker):
             os.chdir(path_temp)
             cursor = i * num_per_worker
             sub_raw = str(i)
@@ -312,8 +314,8 @@ class ASE_Optimizer(Optimizer):
             os.makedirs(sub_raw_xyz, exist_ok=True)
             for a_raw_xyz in os.listdir(path_source)[cursor: cursor + num_per_worker]:
                 shutil.copy(src=os.path.join(path_source, a_raw_xyz), dst=os.path.join(sub_raw_xyz, a_raw_xyz))
-            start_node = self.base_node + self.task_per_node * i
-            end_node = self.base_node + self.task_per_node * (i + 1) - 1
+            start_node = self.base_node + self.cpu_per_worker * i
+            end_node = self.base_node + self.cpu_per_worker * (i + 1) - 1
             res_list[i] = subprocess.Popen(f'taskset -c {start_node}-{end_node} python {pll_file_name}', shell=True)
         for a_proc in res_list:
             a_proc.wait()

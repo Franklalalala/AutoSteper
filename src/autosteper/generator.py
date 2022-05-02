@@ -38,8 +38,10 @@ class Generator():
 
 
     def gen_seq(self, cage: Cage, mode: str, gen_out_path: str, prev_seq: str=None, random_num: int=None):
-        commandline = f'{self.gen_core_path} --graph6str {cage.graph6str} --addnum {cage.add_num} -o {gen_out_path} -m {mode} '
+        commandline = f'{self.gen_core_path} --graph6str \"{cage.graph6str}\" --addnum \"{cage.add_num}\" -o \"{gen_out_path}\" -m \"{mode}\" '
         if mode == 'step':
+            if os.name == 'posix':
+                prev_seq = '_'.join(prev_seq.split())
             commandline = commandline + prev_seq
         elif mode == 'random':
             commandline = commandline + f' -r {random_num}'
