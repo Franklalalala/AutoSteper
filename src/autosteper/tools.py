@@ -34,9 +34,10 @@ def get_yes_info(opt_mode: str, all_parent_info: dict=None):
             continue
         with open(yes_paths_name, 'r') as f:
             for a_log in f.readlines():
+                a_log = a_log.strip()
                 a_name = os.path.basename(os.path.split(a_log)[0])
                 name_list.append(a_name)
-                a_xyz_path = a_log[:-4] + 'xyz'
+                a_xyz_path = os.path.splitext(a_log)[0] + '.xyz'
                 xyz_path_list.append(a_xyz_path)
                 if opt_mode in ['xtb', 'gaussian']:
                     with open(a_xyz_path, 'r') as xyz_f:
@@ -44,7 +45,7 @@ def get_yes_info(opt_mode: str, all_parent_info: dict=None):
                         energy_line = xyz_f.readline()
                         energy = float(energy_line.split()[1])
                 elif opt_mode == 'ase':
-                    with open(a_xyz_path, 'r') as xyz_f:
+                    with open(a_log, 'r') as xyz_f:
                         energy_line = xyz_f.readlines()[-1]
                         energy = float(energy_line.split()[-2].split('*')[0])
                 energy_list.append(energy)
