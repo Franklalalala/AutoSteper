@@ -3,7 +3,7 @@ from fullerenedatapraser.molecular.fullerene import FullereneFamily
 from ase.io import read
 import os
 from ase.atoms import Atoms
-
+import numpy as np
 
 
 
@@ -20,6 +20,7 @@ class Cage():
         self.symbol = self.atoms[0].symbol
         self.centre = self.atoms.get_positions().mean(axis=0)
         self.size = len(self.atoms)
+        self.failed_bin_arr = np.ones(self.size)
         self.max_add_36_size = len(to_36_base(int('1'*self.size, 2)))
         # graph6str
         self._get_graph6str()
@@ -46,22 +47,29 @@ def name2seq(name: str, cage_size: int):
     addon_set = set()
     bin_str = format(int(name, 36), 'b')
     bin_str = '0' * (cage_size - len(bin_str)) + bin_str
+    bin_list = []
     for idx, a_position in enumerate(bin_str):
         if a_position == '1':
             seq += str(idx) + ' '
             addon_set.add(idx)
-    return seq, addon_set
+            bin_list.append(1)
+        else:
+            bin_list.append(0)
+    return seq, addon_set, np.array(bin_list)
 
 
 def seq2name(seq: str, cage: Cage):
     addon_list = []
     bin_name = ['0'] * cage.size
+    bin_arr = np.zeros(cage.size)
     for i in seq.split():
-        bin_name[int(i)] = '1'
-        addon_list.append(int(i))
+        int_i = int(i)
+        bin_name[int_i] = '1'
+        addon_list.append(int_i)
+        bin_arr[int_i] = 1
     bin_name_str = ''.join(bin_name)
     base_36_name = to_36_base(int(bin_name_str, 2))
     for i in range(cage.max_add_36_size - len(base_36_name)):
         base_36_name = '0' + base_36_name
     addon_set = set(addon_list)
-    return base_36_name, addon_set
+    return base_36_name, addon_set, bin_arr

@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from autosteper.cage import name2seq
 from autosteper.generator import Generator
@@ -22,16 +23,25 @@ class AutoSteper():
             self.start = para['run_para']['start']
             self.stop = para['run_para']['stop']
             self.step = para['run_para']['step']
-            self.cutoff_mode = para['run_para']['cutoff_mode']
-            self.cutoff_rank = para['run_para']['cutoff_rank']
-            self.cutoff_value = para['run_para']['cutoff_value']
-            self.path_parser = Path_Parser(path_para=para['path_para'], step=self.step, workbase=para['workbase'],
+            self.run_cut_para = para['run_para']['run_cut_para']
+        if 'path_para' in para.keys():
+            self.path_parser = Path_Parser(path_para=para['path_para'], step=self.step,
+                                           workbase=para['workbase'], start=self.start,
                                            q_cage=self.cage, optimizer=self.optimizer)
 
         if 'random_para' in para.keys():
             self.addon_list = para['random_para']['addon_list']
             self.random_num = para['random_para']['random_num']
             self.try_times = para['random_para']['try_times']
+
+
+        if 'pre_scan_para' in para.keys():
+            self.is_pre_scan = True
+            self.start_ps_num = para['pre_scan_para']['start_ps_num']
+            self.ps_calc = para['pre_scan_para']['calculator']
+            self.ps_cut_para = para['pre_scan_para']['ps_cut_para']
+        else:
+            self.is_pre_scan = False
 
     def random(self):
         cwd_ = str(os.getcwd())
@@ -82,21 +92,70 @@ class AutoSteper():
                     break
                 else:
                     opt_times = opt_times + 1
+    def _post_pre_scan(self):
+        def _copy_file():
+            name = self.pre_scan_map[a_e]
+            os.symlink(src=os.path.abspath(os.path.join(f'{self.optimizer.path_raw_init}', f'{name}.xyz')),
+                       dst=os.path.abspath(os.path.join('post_pre_scan_raw', f'{name}.xyz')))
+
+        os.makedirs('post_pre_scan_raw', exist_ok=True)
+        e_list = sorted(self.pre_scan_map.keys())
+        if self.ps_cut_para['mode'] == 'rank':
+            for a_rank, a_e in enumerate(e_list):
+                if a_rank == self.ps_cut_para['rank']:
+                    break
+                _copy_file()
+        elif self.ps_cut_para['mode'] == 'value':
+            for a_e in e_list:
+                if a_e >= e_list[0] + self.ps_cut_para['value']:
+                    break
+                _copy_file()
+        elif self.ps_cut_para['mode'] == 'value_rank':
+            for a_rank, a_e in enumerate(e_list):
+                if a_e >= e_list[0] + self.ps_cut_para['value']:
+                    break
+                if a_rank == self.ps_cut_para['rank']:
+                    break
+                _copy_file()
+        elif self.ps_cut_para['mode'] == None:
+            for a_e in e_list:
+                _copy_file()
+        else:
+            raise RuntimeError('Please check your pre-scan cutoff mode keyword.\nCurrently only support: None, rank, value and value_rank.')
+        self.optimizer.path_raw_init = 'post_pre_scan_raw'
+
+
+
+
 
     def _first_step(self):
         self.cage.set_add_num(self.start)
+        if self.is_pre_scan and self.cage.add_num >= self.start_ps_num:
+            is_pre_scan = True
+            self.pre_scan_map = dict()
+        else:
+            is_pre_scan = False
         gen_out_path = f'{self.cage.name}_{self.cage.add_num}_addons.out'
         self.generator.gen_seq(cage=self.cage,
                                gen_out_path=gen_out_path,
                                mode='base')
         self.optimizer.set_init_folders()
-        self.generator.build(is_first=True,
-                             gen_out_path=gen_out_path,
-                             dump_folder=self.optimizer.path_raw_init,
-                             cage=self.cage,
-                             prev_xyz_path=self.cage.pristine_path)
-
-
+        if is_pre_scan:
+            self.pre_scan_map = self.generator.build(is_first=True,
+                                 gen_out_path=gen_out_path,
+                                 dump_folder=self.optimizer.path_raw_init,
+                                 cage=self.cage,
+                                 prev_xyz_path=self.cage.pristine_path,
+                                 calc=self.ps_calc,
+                                 pre_scan_map=self.pre_scan_map
+                                 )
+            self._post_pre_scan()
+        else:
+            _ = self.generator.build(is_first=True,
+                                 gen_out_path=gen_out_path,
+                                 dump_folder=self.optimizer.path_raw_init,
+                                 cage=self.cage,
+                                 prev_xyz_path=self.cage.pristine_path)
         step_status = self.optimizer.opt()
         if step_status == 0:
             return 0
@@ -108,50 +167,70 @@ class AutoSteper():
         def _step_unit():
             prev_xyz_path = prev_deep_yes['xyz_path'][idx]
             prev_name = prev_deep_yes['name'][idx]
-            prev_seq, prev_addon_set = name2seq(name=prev_name, cage_size=self.cage.size)
+            prev_seq, prev_addon_set, _ = name2seq(name=prev_name, cage_size=self.cage.size)
             sub_nauty_o = os.path.join(sub_nauty_path, f'{prev_name}.out')
             self.generator.gen_seq(mode='step', cage=self.cage, gen_out_path=sub_nauty_o, prev_seq=prev_seq)
-            self.all_parent_info = self.generator.build(is_first=False,
-                                                        gen_out_path=sub_nauty_o,
-                                                        dump_folder=self.optimizer.path_raw_init,
-                                                        cage=self.cage,
-                                                        prev_xyz_path=prev_xyz_path,
-                                                        parent_info=self.all_parent_info,
-                                                        prev_addon_set=prev_addon_set,
-                                                        parent_name=prev_name
-                                                        )
+            if is_pre_scan:
+                self.all_parent_info, self.pre_scan_map = self.generator.build(is_first=False,
+                                                            gen_out_path=sub_nauty_o,
+                                                            dump_folder=self.optimizer.path_raw_init,
+                                                            cage=self.cage,
+                                                            prev_xyz_path=prev_xyz_path,
+                                                            parent_info=self.all_parent_info,
+                                                            prev_addon_set=prev_addon_set,
+                                                            parent_name=prev_name,
+                                                            calc=self.ps_calc,
+                                                            pre_scan_map=self.pre_scan_map
+                                                            )
+            else:
+                self.all_parent_info, _ = self.generator.build(is_first=False,
+                                                            gen_out_path=sub_nauty_o,
+                                                            dump_folder=self.optimizer.path_raw_init,
+                                                            cage=self.cage,
+                                                            prev_xyz_path=prev_xyz_path,
+                                                            parent_info=self.all_parent_info,
+                                                            prev_addon_set=prev_addon_set,
+                                                            parent_name=prev_name
+                                                            )
 
         self.cage.set_add_num(self.new_add_num)
+        if self.is_pre_scan and self.cage.add_num >= self.start_ps_num:
+            is_pre_scan = True
+            self.pre_scan_map = dict()
+        else:
+            is_pre_scan = False
         self.optimizer.set_init_folders()
         self.all_parent_info = {}
         sub_nauty_path = 'sub_nauty'
         os.makedirs(sub_nauty_path, exist_ok=True)
 
         prev_deep_yes = pd.read_pickle(self.prev_deep_yes)
-        if self.cutoff_mode == 'rank':
-            for idx in range(self.cutoff_rank):
+        if self.run_cut_para['mode'] == 'rank':
+            for idx in range(min(len(prev_deep_yes['energy']), self.run_cut_para['rank'])):
                 _step_unit()
-        elif self.cutoff_mode == 'value_rank':
-            lowest_e = prev_deep_yes['energy'][0]
-            tracker = 0
+        elif self.run_cut_para['mode'] == 'value_rank':
             for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
-                if a_prev_energy > lowest_e + self.cutoff_value:
+                if a_prev_energy > prev_deep_yes['energy'][0] + self.run_cut_para['value']:
+                    break
+                if idx == self.run_cut_para['rank']:
                     break
                 _step_unit()
-                tracker += 1
-                if tracker == self.cutoff_rank:
+        elif self.run_cut_para['mode'] == 'value':
+            for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
+                if a_prev_energy > prev_deep_yes['energy'][0] + self.run_cut_para['value']:
                     break
-        elif self.cutoff_mode == 'value':
-            lowest_e = prev_deep_yes['energy'][0]
-            for a_prev_energy in prev_deep_yes['energy']:
-                if a_prev_energy > lowest_e + self.cutoff_value:
-                    break
+                _step_unit()
+        elif self.run_cut_para['mode'] == None:
+            for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
                 _step_unit()
         else:
-            raise RuntimeError(f'The cutoff mode {self.cutoff_mode} is not supported in this program.')
+            raise RuntimeError('Please check your run cutoff mode keyword.\nCurrently only support: None, rank, value and value_rank.')
 
         all_parent_info_df = pd.DataFrame(self.all_parent_info)
         all_parent_info_df.to_pickle('all_parent_info.pickle')
+
+        if is_pre_scan:
+            self._post_pre_scan()
 
         step_status = self.optimizer.opt()
         self.prev_deep_yes = get_yes_info(opt_mode=self.optimizer.mode, all_parent_info=self.all_parent_info)

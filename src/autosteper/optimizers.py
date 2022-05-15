@@ -271,10 +271,9 @@ class ASE_Optimizer(Optimizer):
             self.num_worker = opt_para['pll_para']['num_worker']
             self.cpu_per_worker = opt_para['pll_para']['cpu_per_worker']
             self.base_node = opt_para['pll_para']['base_node']
-        else:
-            self.calc = opt_para['calculator']
-            self.fmax = opt_para['fmax']
-            self.ase_optimizer = opt_para['ase_optimizer']
+        self.calc = opt_para['calculator']
+        self.fmax = opt_para['fmax']
+        self.ase_optimizer = opt_para['ase_optimizer']
         self.mode = 'ase'
 
     def run_a_batch(self, path_source: str, path_destination: str, steps: int):

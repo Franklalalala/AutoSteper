@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from numpy import pi
-from ase.atoms import Atom
+from ase.atoms import Atom, Atoms
 from ase.io import read, write
 from ase.neighborlist import build_neighbor_list
 from autosteper.cage import seq2name, Cage
@@ -48,12 +48,10 @@ class Generator():
         os.system(commandline)
 
 
-    def build(self, is_first: bool, gen_out_path: str, dump_folder: str, cage: Cage, prev_xyz_path: str, parent_name: str=None, parent_info: dict=None, prev_addon_set: set=None):
-        def _build_unit():
-            old_cage = read(prev_xyz_path, format='xyz')
-            old_coords = old_cage.get_positions().copy()
-            neighborList = build_neighbor_list(old_cage, bothways=True, self_interaction=False)
-            dok_matrix = neighborList.get_connectivity_matrix()
+    def build(self, is_first: bool, gen_out_path: str, dump_folder: str, cage: Cage, prev_xyz_path: str, calc=None,
+              parent_name: str=None, parent_info: dict=None, prev_addon_set: set=None, pre_scan_map: dict=None):
+
+        def _build_unit(old_cage: Atoms, old_coords: np.array):
             # after this loop, old cage will become new cage, but the name stays.
             for i in addon_set:
                 ADJ_coords = []
@@ -101,23 +99,65 @@ class Generator():
                         new_atom_3 = Atom(symbol=self.group[1], position=addon_coord_3)
                         old_cage.append(new_atom_2)
                         old_cage.append(new_atom_3)
+            if not calc == None:
+                old_cage.calc = calc
+                # different api may have different ways to get e
+                e = old_cage.get_total_energy()
+                pre_scan_map.update({e: name})
+                write(filename=os.path.join(dump_folder, f'{name}.xyz'), format='xyz', images=old_cage, comment=str(e))
+            else:
                 write(filename=os.path.join(dump_folder, f'{name}.xyz'), format='xyz', images=old_cage)
 
+
+        old_cage = read(prev_xyz_path, format='xyz')
+        old_coords = old_cage.get_positions()
+        neighborList = build_neighbor_list(old_cage, bothways=True, self_interaction=False)
+        dok_matrix = neighborList.get_connectivity_matrix()
 
         if is_first:
             with open(gen_out_path, 'r') as file:
                 for a_seq in file.readlines():
-                    name, addon_set = seq2name(seq=a_seq, cage=cage)
-                    _build_unit()
-        else:
+                    name, addon_set, _ = seq2name(seq=a_seq, cage=cage)
+                    _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
+            return pre_scan_map
+        # Haven't been a failed configuration
+        elif len(cage.failed_bin_arr.shape) == 1:
             with open(gen_out_path, 'r') as file:
                 for a_seq in file.readlines():
-                    name, new_addon_set = seq2name(seq=a_seq, cage=cage)
-                    addon_set = new_addon_set - prev_addon_set
-                    if not name in parent_info.keys():
-                        _build_unit()
-                        parent_info.update({name: [[parent_name]]})
-                    else:
+                    name, new_addon_set, a_bin_arr = seq2name(seq=a_seq, cage=cage)
+                    if name in parent_info.keys():
                         parent_info[name][0].append(parent_name)
-            return parent_info
+                    else:
+                        addon_set = new_addon_set - prev_addon_set
+                        _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
+                        parent_info.update({name: [[parent_name]]})
+            return parent_info, pre_scan_map
+        else:
+            addon_set_list = []
+            q_bin_arr_list = []
+            name_list = []
+            with open(gen_out_path, 'r') as file:
+                for a_seq in file.readlines():
+                    name, new_addon_set, a_bin_arr = seq2name(seq=a_seq, cage=cage)
+                    if name in parent_info.keys():
+                        parent_info[name][0].append(parent_name)
+                    else:
+                        addon_set_list.append(new_addon_set - prev_addon_set)
+                        q_bin_arr_list.append(a_bin_arr)
+                        name_list.append(name)
+                        parent_info.update({name: [[parent_name]]})
+            # Check failed ones in a batch
+            if len(addon_set_list) > 0:
+                failed_bin_arr_T = cage.failed_bin_arr.T
+                chk_arr = failed_bin_arr_T.sum(axis=0)
+                q_bin_arrs = np.array(q_bin_arr_list)
+                res_arrs = q_bin_arrs @ failed_bin_arr_T - chk_arr
+                for idx in range(len(addon_set_list)):
+                    if 0 in res_arrs[idx]:
+                        continue
+                    else:
+                        addon_set = addon_set_list[idx]
+                        name = name_list[idx]
+                        _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
+            return parent_info, pre_scan_map
 

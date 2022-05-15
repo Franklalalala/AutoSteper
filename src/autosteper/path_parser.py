@@ -22,12 +22,13 @@ from ase.io.gaussian import read_gaussian_out
 hartree2kjmol = Hartree / (kJ / mol)
 
 class Path_Parser():
-    def __init__(self, path_para: dict, step: int, workbase: str, q_cage: Cage, optimizer: Optimizer):
+    def __init__(self, path_para: dict, step: int, start: int, workbase: str, q_cage: Cage, optimizer: Optimizer):
         self.q_cage = q_cage
         self.optimizer = optimizer
         self.workbase = os.path.join(workbase, 'path_info')
         os.makedirs(self.workbase, exist_ok=True)
         self.step = step
+        self.start = start
         self.q_path_num = path_para['q_path_num']
         self.q_add_num = path_para['q_add_num']
         self.q_low_e_num = path_para['q_low_e_num']
@@ -51,7 +52,7 @@ class Path_Parser():
 
         def _get_pathway_unit(idx: int, pathway: list, cage_name: str, e_list: list, name_list: list):
             if idx == 0:
-                _, addon_set = name2seq(cage_size=cage_size, name=cage_name)
+                _, addon_set, _0 = name2seq(cage_size=cage_size, name=cage_name)
                 final_pathway = [init_pathway, addon_set, *pathway]
                 q_isomer_e = flat_yes_list[idx][cage_name][0]
                 final_e_list = [self.base_e, q_isomer_e, *e_list]
@@ -64,12 +65,12 @@ class Path_Parser():
                 return
             else:
                 new_name_list = [cage_name, *name_list]
-                _, addon_set = name2seq(cage_size=cage_size, name=cage_name)
+                _, addon_set, _0 = name2seq(cage_size=cage_size, name=cage_name)
                 parent_name_list = flat_yes_list[idx][cage_name][0]
                 q_isomer_e = flat_yes_list[idx][cage_name][1]
                 new_e_list = [q_isomer_e, *e_list]
                 for a_parent in parent_name_list:
-                    _, parent_addon_set = name2seq(cage_size=cage_size, name=a_parent)
+                    _, parent_addon_set, _0 = name2seq(cage_size=cage_size, name=a_parent)
                     new_addon_set = addon_set - parent_addon_set
                     new_pathway = [new_addon_set, *pathway]
                     _get_pathway_unit(idx - 1, pathway=new_pathway, cage_name=a_parent, e_list=new_e_list,
@@ -118,6 +119,12 @@ class Path_Parser():
                     for a_line in r_file.readlines():
                         w_file.write(a_line)
 
+        flat_yes_list = []
+        add_num_list = list(range(self.start, self.q_add_num + self.step, self.step))
+        for i in add_num_list:
+            addon_path = os.path.join(self.q_cage.workbase, f'{i}addons')
+            a_flat_yes_info = pd.read_pickle(os.path.join(addon_path, 'flat_yes_info.pickle'))
+            flat_yes_list.append(a_flat_yes_info)
 
         # Query the path of some low e isomers
         self.q_low_e_num = min(self.q_low_e_num, Max_q_rank)
@@ -130,13 +137,8 @@ class Path_Parser():
             os.chdir(q_rank_workbase)
             write(filename=q_isomer_name + '.xyz', images=q_isomer_atoms, format='xyz', comment=str(q_isomer_e))
             init_pathway = {0}
-            flat_yes_list = []
-            for i in range(self.step, self.q_add_num + self.step, self.step):
-                addon_path = os.path.join(self.q_cage.workbase, f'{i * self.step}addons')
-                a_flat_yes_info = pd.read_pickle(os.path.join(addon_path, 'flat_yes_info.pickle'))
-                flat_yes_list.append(a_flat_yes_info)
 
-            idx = int(self.q_add_num / self.step) - 1
+            idx = len(add_num_list) - 1
             pathways = []
             e_lists = []
             e_areas = []
@@ -162,8 +164,7 @@ class Path_Parser():
                 continue
 
             rel_e_array = np.ones_like(e_array)
-            num_steps = e_array.shape[-1]
-            for i in range(num_steps):
+            for i in range(len(add_num_list)+1):
                 rel_e_array[:, i] = e_array[:, i] - min(e_array[:, i])
             rel_e_array = rel_e_array * hartree2kjmol
 
@@ -175,11 +176,10 @@ class Path_Parser():
                 os.chdir(one_path_workbase)
                 log_path = f'path_rank_{path_rank}_root.log'
                 write(filename=log_path, images=self.q_cage.atoms, format='xyz', append=True)
-                for idx, name in enumerate(name_list):
-                    if idx == 0:
-                        continue
-                    addon_path = os.path.join(self.q_cage.workbase, f'{self.step * idx}addons')
-                    new_path = f'{name}_addon_{self.step * (idx + 1) - 1}.xyz'
+                for idx, add_num in enumerate(add_num_list):
+                    addon_path = os.path.join(self.q_cage.workbase, f'{add_num}addons')
+                    name = name_list[idx+1]
+                    new_path = f'{name}_addon_{add_num}.xyz'
                     if self.optimizer.mode == 'xtb':
                         xyz_filename = 'xtbopt.xyz'
                     elif self.optimizer.mode == 'ase':
@@ -196,31 +196,38 @@ class Path_Parser():
                     atoms = read(new_path, format='xyz')
                     write(filename=log_path, images=atoms, format='xyz', append=True)
 
+            np.save(file=os.path.join(q_rank_workbase, f'Path_relative_energy.npy'), arr=rel_e_array)
             # Plot relative energy for path rank
+            rel_e_array = rel_e_array[:self.q_path_num, :]
             fig_1 = plt.figure(dpi=400)
             cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
-            sns.heatmap(rel_e_array, annot=True, cmap=cmap, linewidths=.5)
+            rel_e_df = pd.DataFrame(rel_e_array)
+            rel_e_df.columns = [0, *add_num_list]
+            sns.heatmap(rel_e_df, annot=True, cmap=cmap, linewidths=.5)
             plt.ylabel('Path rank.')
             plt.xlabel('Addon number.')
             plt.title('Path relative energy (kj/mol).')
             plt.savefig(os.path.join(q_rank_workbase, f'Path_relative_energy.png'))
-            np.save(file=os.path.join(q_rank_workbase, f'Path_relative_energy.npy'), arr=rel_e_array)
 
             # Plot relative energy for isomers.
             isomer_rel_e = np.zeros_like(e_array)
-            for i in range(1, num_steps):
-                deep_info_path = os.path.join(self.q_cage.workbase, f'{self.step * i}addons', 'deep_yes_info.pickle')
+            for idx, add_num in enumerate(add_num_list):
+                deep_info_path = os.path.join(self.q_cage.workbase, f'{add_num}addons', 'deep_yes_info.pickle')
                 deep_info = pd.read_pickle(deep_info_path)
                 isomer_min = deep_info['energy'][0]
-                isomer_rel_e[:, i] = e_array[:, i] - isomer_min
+                isomer_rel_e[:, idx+1] = e_array[:, idx+1] - isomer_min
             isomer_rel_e = isomer_rel_e * hartree2kjmol
 
+
+            np.save(file=os.path.join(q_rank_workbase, f'Isomer_relative_energy.npy'), arr=isomer_rel_e)
+            isomer_rel_e = isomer_rel_e[:self.q_path_num, :]
             # Simple plot
             fig_2 = plt.figure(dpi=400)
             cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
-            sns.heatmap(isomer_rel_e, annot=True, cmap=cmap, linewidths=.5)
+            isomer_rel_e_df = pd.DataFrame(isomer_rel_e)
+            isomer_rel_e_df.columns = [0, *add_num_list]
+            sns.heatmap(isomer_rel_e_df, annot=True, cmap=cmap, linewidths=.5)
             plt.ylabel('Path rank.')
             plt.xlabel('Addon number.')
             plt.title('Isomer relative energy (kj/mol).')
             plt.savefig(os.path.join(q_rank_workbase, f'Isomer_relative_energy.png'))
-            np.save(file=os.path.join(q_rank_workbase, f'Isomer_relative_energy.npy'), arr=isomer_rel_e)
