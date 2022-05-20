@@ -4,10 +4,12 @@ from autosteper.cage import name2seq
 from autosteper.generator import Generator
 from autosteper.optimizers import *
 from autosteper.path_parser import Path_Parser
-from autosteper.tools import get_yes_info
 import shutil
+from ase.units import Hartree, eV
+import numpy as np
 
 
+Hartree2eV = Hartree/eV
 class AutoSteper():
     def __init__(self, para: dict):
         self.cage = Cage(pristine_path=para['pristine_cage'], workbase=para['workbase'])
@@ -23,7 +25,12 @@ class AutoSteper():
             self.start = para['run_para']['start']
             self.stop = para['run_para']['stop']
             self.step = para['run_para']['step']
-            self.run_cut_para = para['run_para']['run_cut_para']
+            self.wht_list_para = para['run_para']['wht_list_para']
+            if 'has_blk_list' in para['run_para'].keys():
+                self.has_blk_list = para['run_para']['has_blk_list']
+                self.blk_list_para = para['run_para']['blk_list_para']
+            else:
+                self.has_blk_list = False
         if 'path_para' in para.keys():
             self.path_parser = Path_Parser(path_para=para['path_para'], step=self.step,
                                            workbase=para['workbase'], start=self.start,
@@ -34,7 +41,6 @@ class AutoSteper():
             self.random_num = para['random_para']['random_num']
             self.try_times = para['random_para']['try_times']
 
-
         if 'pre_scan_para' in para.keys():
             self.is_pre_scan = True
             self.start_ps_num = para['pre_scan_para']['start_ps_num']
@@ -42,6 +48,108 @@ class AutoSteper():
             self.ps_cut_para = para['pre_scan_para']['ps_cut_para']
         else:
             self.is_pre_scan = False
+
+    def _get_yes_info(self, all_parent_info: dict=None):
+        cwd_ = os.getcwd()
+        deep_yes_path = os.path.join(cwd_, 'deep_yes_info.pickle')
+        if os.path.exists(deep_yes_path):
+            return deep_yes_path
+        flat_yes_info = {}
+        name_list = []
+        energy_list = []
+        xyz_path_list = []
+        for yes_paths_name in ['init_yes_paths', 'yes_paths']:
+            if not os.path.exists(yes_paths_name):
+                continue
+            with open(yes_paths_name, 'r') as f:
+                for a_log in f.readlines():
+                    a_log = a_log.strip()
+                    a_name = os.path.basename(os.path.split(a_log)[0])
+                    name_list.append(a_name)
+                    a_xyz_path = os.path.splitext(a_log)[0] + '.xyz'
+                    xyz_path_list.append(a_xyz_path)
+                    if self.optimizer.mode in ['xtb', 'gaussian']:
+                        with open(a_xyz_path, 'r') as xyz_f:
+                            xyz_f.readline()
+                            energy_line = xyz_f.readline()
+                            energy = float(energy_line.split()[1])
+                    elif self.optimizer.mode == 'ase':
+                        with open(a_log, 'r') as xyz_f:
+                            energy_line = xyz_f.readlines()[-1]
+                            energy = float(energy_line.split()[-2].split('*')[0])
+                    energy_list.append(energy)
+                    if all_parent_info == None:
+                        flat_yes_info.update({a_name: [energy]})
+                    else:
+                        flat_yes_info.update({a_name: [all_parent_info[a_name][0], energy]})
+
+        deep_yes_info = pd.DataFrame({'name': name_list, 'energy': energy_list, 'xyz_path': xyz_path_list})
+        sorted_deep_yes = deep_yes_info.sort_values(by='energy')
+        sorted_deep_yes.index = sorted(sorted_deep_yes.index)
+        sorted_deep_yes.to_pickle(path=deep_yes_path)
+        flat_yes_info_df = pd.DataFrame(flat_yes_info)
+        flat_yes_info_df.to_pickle(path='flat_yes_info.pickle')
+        return deep_yes_path, os.path.abspath('flat_yes_info.pickle')
+
+    def _read_blk_list(self):
+        def _dump_a_name():
+            _, _0, bin_arr = name2seq(name=a_name, cage_size=self.cage.size)
+            self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
+        if 'mode' in self.blk_list_para.keys() and self.blk_list_para['mode'] != None:
+            prev_deep_yes = pd.read_pickle('deep_yes_info.pickle')
+            name_list = list(prev_deep_yes['name'])
+            if self.blk_list_para['mode'] == 'rank':
+                for a_name in name_list[-self.blk_list_para['rank']:]:
+                    _dump_a_name()
+            elif self.blk_list_para['mode'] == 'value':
+                max_e = max(prev_deep_yes['energy'])
+                for idx, a_e in enumerate(prev_deep_yes['energy'][::-1]):
+                    if a_e > max_e - self.blk_list_para['value']/Hartree2eV:
+                        a_name = name_list[-(idx + 1)]
+                        _dump_a_name()
+            elif self.blk_list_para['mode'] == 'value_rank':
+                max_e = max(prev_deep_yes['energy'])
+                for idx, a_e in enumerate(prev_deep_yes['energy'][::-1]):
+                    if a_e > (max_e - self.blk_list_para['value']/Hartree2eV) and idx < self.blk_list_para['rank']:
+                        a_name = name_list[-(idx + 1)]
+                        _dump_a_name()
+            else:
+                raise RuntimeError(
+                    'Please check your black list parameter.\nCurrently only support: None, rank, value and value_rank.')
+
+
+    def _post_pre_scan(self):
+        def _copy_file():
+            name = self.pre_scan_map[a_e]
+            os.symlink(src=os.path.abspath(os.path.join(f'{self.optimizer.path_raw_init}', f'{name}.xyz')),
+                       dst=os.path.abspath(os.path.join('post_pre_scan_raw', f'{name}.xyz')))
+
+        os.makedirs('post_pre_scan_raw', exist_ok=True)
+        e_list = sorted(self.pre_scan_map.keys())
+        if self.ps_cut_para['mode'] == 'rank':
+            for a_rank, a_e in enumerate(e_list):
+                if a_rank == self.ps_cut_para['rank']:
+                    break
+                _copy_file()
+        elif self.ps_cut_para['mode'] == 'value':
+            for a_e in e_list:
+                if a_e >= e_list[0] + self.ps_cut_para['value']/Hartree2eV:
+                    break
+                _copy_file()
+        elif self.ps_cut_para['mode'] == 'value_rank':
+            for a_rank, a_e in enumerate(e_list):
+                if a_e >= e_list[0] + self.ps_cut_para['value']/Hartree2eV:
+                    break
+                if a_rank == self.ps_cut_para['rank']:
+                    break
+                _copy_file()
+        elif self.ps_cut_para['mode'] == None:
+            for a_e in e_list:
+                _copy_file()
+        else:
+            raise RuntimeError('Please check your pre-scan cutoff mode keyword.\nCurrently only support: None, rank, value and value_rank.')
+        self.optimizer.path_raw_init = 'post_pre_scan_raw'
+
 
     def random(self):
         cwd_ = str(os.getcwd())
@@ -84,7 +192,7 @@ class AutoSteper():
                     os.chdir(cwd_)
                     shutil.rmtree(self.cage.addon_path)
                 else:
-                    _ = get_yes_info(opt_mode=self.optimizer.mode)
+                    _, _ = self._get_yes_info()
                     break
                 if opt_times == self.try_times - 1:
                     print(f'Random opt procedure has performed {self.try_times} times, '
@@ -92,40 +200,6 @@ class AutoSteper():
                     break
                 else:
                     opt_times = opt_times + 1
-    def _post_pre_scan(self):
-        def _copy_file():
-            name = self.pre_scan_map[a_e]
-            os.symlink(src=os.path.abspath(os.path.join(f'{self.optimizer.path_raw_init}', f'{name}.xyz')),
-                       dst=os.path.abspath(os.path.join('post_pre_scan_raw', f'{name}.xyz')))
-
-        os.makedirs('post_pre_scan_raw', exist_ok=True)
-        e_list = sorted(self.pre_scan_map.keys())
-        if self.ps_cut_para['mode'] == 'rank':
-            for a_rank, a_e in enumerate(e_list):
-                if a_rank == self.ps_cut_para['rank']:
-                    break
-                _copy_file()
-        elif self.ps_cut_para['mode'] == 'value':
-            for a_e in e_list:
-                if a_e >= e_list[0] + self.ps_cut_para['value']:
-                    break
-                _copy_file()
-        elif self.ps_cut_para['mode'] == 'value_rank':
-            for a_rank, a_e in enumerate(e_list):
-                if a_e >= e_list[0] + self.ps_cut_para['value']:
-                    break
-                if a_rank == self.ps_cut_para['rank']:
-                    break
-                _copy_file()
-        elif self.ps_cut_para['mode'] == None:
-            for a_e in e_list:
-                _copy_file()
-        else:
-            raise RuntimeError('Please check your pre-scan cutoff mode keyword.\nCurrently only support: None, rank, value and value_rank.')
-        self.optimizer.path_raw_init = 'post_pre_scan_raw'
-
-
-
 
 
     def _first_step(self):
@@ -160,7 +234,7 @@ class AutoSteper():
         if step_status == 0:
             return 0
         else:
-            self.prev_deep_yes = get_yes_info(opt_mode=self.optimizer.mode)
+            self.prev_deep_yes, self.prev_flat_yes = self._get_yes_info()
         return step_status
 
     def _take_a_step(self):
@@ -194,37 +268,50 @@ class AutoSteper():
                                                             )
 
         self.cage.set_add_num(self.new_add_num)
+
         if self.is_pre_scan and self.cage.add_num >= self.start_ps_num:
             is_pre_scan = True
             self.pre_scan_map = dict()
         else:
             is_pre_scan = False
+
+        if self.has_blk_list and self.cage.add_num >= self.blk_list_para['start_blk_num']:
+            has_blk_list = True
+            self.checker.has_blk_list = True
+        else:
+            has_blk_list = False
+
         self.optimizer.set_init_folders()
         self.all_parent_info = {}
         sub_nauty_path = 'sub_nauty'
         os.makedirs(sub_nauty_path, exist_ok=True)
 
         prev_deep_yes = pd.read_pickle(self.prev_deep_yes)
-        if self.run_cut_para['mode'] == 'rank':
-            for idx in range(min(len(prev_deep_yes['energy']), self.run_cut_para['rank'])):
+        if self.wht_list_para['mode'] == 'rank':
+            for idx in range(min(len(prev_deep_yes['energy']), self.wht_list_para['rank'])):
                 _step_unit()
-        elif self.run_cut_para['mode'] == 'value_rank':
+        elif self.wht_list_para['mode'] == 'value_rank':
             for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
-                if a_prev_energy > prev_deep_yes['energy'][0] + self.run_cut_para['value']:
+                if a_prev_energy > prev_deep_yes['energy'][0] + self.wht_list_para['value']/Hartree2eV:
                     break
-                if idx == self.run_cut_para['rank']:
+                if idx == self.wht_list_para['rank']:
                     break
                 _step_unit()
-        elif self.run_cut_para['mode'] == 'value':
+        elif self.wht_list_para['mode'] == 'value':
             for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
-                if a_prev_energy > prev_deep_yes['energy'][0] + self.run_cut_para['value']:
+                if a_prev_energy > prev_deep_yes['energy'][0] + self.wht_list_para['value']/Hartree2eV:
                     break
                 _step_unit()
-        elif self.run_cut_para['mode'] == None:
+        elif self.wht_list_para['mode'] == None:
             for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
                 _step_unit()
         else:
             raise RuntimeError('Please check your run cutoff mode keyword.\nCurrently only support: None, rank, value and value_rank.')
+        prev_flat_yes = pd.read_pickle(self.prev_flat_yes)
+        wht_list_names = prev_deep_yes['name'][: idx+1]
+        new_prev_flat = prev_flat_yes[wht_list_names]
+        new_prev_flat.to_pickle(self.prev_flat_yes)
+
 
         all_parent_info_df = pd.DataFrame(self.all_parent_info)
         all_parent_info_df.to_pickle('all_parent_info.pickle')
@@ -233,7 +320,11 @@ class AutoSteper():
             self._post_pre_scan()
 
         step_status = self.optimizer.opt()
-        self.prev_deep_yes = get_yes_info(opt_mode=self.optimizer.mode, all_parent_info=self.all_parent_info)
+        self.prev_deep_yes, self.prev_flat_yes = self._get_yes_info(all_parent_info=self.all_parent_info)
+
+        if has_blk_list:
+            self._read_blk_list()
+
         return step_status
 
     def run(self):

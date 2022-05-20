@@ -18,54 +18,6 @@ def rotate_around_axis(norm_axis: np.array, old_vec: np.array, theta: float):
     return new_vec
 
 
-
-
-def get_yes_info(opt_mode: str, all_parent_info: dict=None):
-    cwd_ = os.getcwd()
-    deep_yes_path = os.path.join(cwd_, 'deep_yes_info.pickle')
-    if os.path.exists(deep_yes_path):
-        return deep_yes_path
-    flat_yes_info = {}
-    name_list = []
-    energy_list = []
-    xyz_path_list = []
-    for yes_paths_name in ['init_yes_paths', 'yes_paths']:
-        if not os.path.exists(yes_paths_name):
-            continue
-        with open(yes_paths_name, 'r') as f:
-            for a_log in f.readlines():
-                a_log = a_log.strip()
-                a_name = os.path.basename(os.path.split(a_log)[0])
-                name_list.append(a_name)
-                a_xyz_path = os.path.splitext(a_log)[0] + '.xyz'
-                xyz_path_list.append(a_xyz_path)
-                if opt_mode in ['xtb', 'gaussian']:
-                    with open(a_xyz_path, 'r') as xyz_f:
-                        xyz_f.readline()
-                        energy_line = xyz_f.readline()
-                        energy = float(energy_line.split()[1])
-                elif opt_mode == 'ase':
-                    with open(a_log, 'r') as xyz_f:
-                        energy_line = xyz_f.readlines()[-1]
-                        energy = float(energy_line.split()[-2].split('*')[0])
-                energy_list.append(energy)
-                if all_parent_info == None:
-                    flat_yes_info.update({a_name: [energy]})
-                else:
-                    flat_yes_info.update({a_name: [all_parent_info[a_name][0], energy]})
-
-    deep_yes_info = pd.DataFrame({'name': name_list, 'energy': energy_list, 'xyz_path': xyz_path_list})
-    sorted_deep_yes = deep_yes_info.sort_values(by='energy')
-    sorted_deep_yes.index = sorted(sorted_deep_yes.index)
-    sorted_deep_yes.to_pickle(path=deep_yes_path)
-    flat_yes_info_df = pd.DataFrame(flat_yes_info)
-    flat_yes_info_df.to_pickle(path='flat_yes_info.pickle')
-    return deep_yes_path
-
-
-
-
-
 def read_xtb_log(log_path):
     with open(log_path, "r") as file:
         lines = file.readlines()

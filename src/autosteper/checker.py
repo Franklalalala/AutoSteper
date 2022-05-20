@@ -9,10 +9,11 @@ from ase.io.gaussian import read_gaussian_out
 
 
 class Checker():
-    def __init__(self, chk_skin: float, group: str, cage: Cage):
+    def __init__(self, chk_skin: float, group: str, cage: Cage, has_blk_list: bool=False):
         self.skin = chk_skin
         self.group = group
         self.cage = cage
+        self.has_blk_list = has_blk_list
 
 
     def check_ADJ(self, dok_matrix):
@@ -179,7 +180,8 @@ class Checker():
             _, init_addonset, bin_arr = name2seq(a_folder, cage_size=self.cage.size)
             if status_code:
                 failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
+                if self.has_blk_list:
+                    self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
             else:
                 if init_addonset == opted_addonset:
                     if is_init == True and nimages < init_cycle:
@@ -190,11 +192,13 @@ class Checker():
                 elif len(init_addonset) == len(opted_addonset):
                     status_code = 2
                     failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                    self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
+                    if self.has_blk_list:
+                        self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
                 else:
                     status_code = 1
                     failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                    self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
+                    if self.has_blk_list:
+                        self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
 
         if is_init:
             with open('init_yes_paths', 'a') as f:

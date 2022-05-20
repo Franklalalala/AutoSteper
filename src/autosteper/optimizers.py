@@ -283,6 +283,10 @@ class ASE_Optimizer(Optimizer):
         for a_file in os.listdir(path_source):
             name = a_file.split('.')[0]
             sub_opt = os.path.join(path_destination, name)
+
+            # if os.path.exists(sub_opt):
+            #     continue
+
             os.makedirs(sub_opt, exist_ok=True)
             path_a_file = os.path.join(path_source, a_file)
             shutil.copy(path_a_file, os.path.join(sub_opt, a_file))

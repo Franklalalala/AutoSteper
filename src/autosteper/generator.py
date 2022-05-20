@@ -120,7 +120,7 @@ class Generator():
                     name, addon_set, _ = seq2name(seq=a_seq, cage=cage)
                     _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
             return pre_scan_map
-        # Haven't been a failed configuration
+        # Do not have a black list
         elif len(cage.failed_bin_arr.shape) == 1:
             with open(gen_out_path, 'r') as file:
                 for a_seq in file.readlines():
@@ -146,7 +146,7 @@ class Generator():
                         q_bin_arr_list.append(a_bin_arr)
                         name_list.append(name)
                         parent_info.update({name: [[parent_name]]})
-            # Check failed ones in a batch
+            # Check black list in a batch
             if len(addon_set_list) > 0:
                 failed_bin_arr_T = cage.failed_bin_arr.T
                 chk_arr = failed_bin_arr_T.sum(axis=0)

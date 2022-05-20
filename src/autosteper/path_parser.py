@@ -33,6 +33,25 @@ class Path_Parser():
         self.q_add_num = path_para['q_add_num']
         self.q_low_e_num = path_para['q_low_e_num']
         self.log_low_e_num = path_para['log_low_e_num']
+        if 'ctl_path_para' in path_para.keys():
+            self.ctr_path = True
+            self.ctl_parent_num = path_para['ctl_path_para']['ctl_parent_num']
+            self.max_path_num = path_para['ctl_path_para']['max_path_num']
+        else:
+            self.ctr_path = False
+
+    def _sort_parent(self, flat_info: pd.DataFrame, info_path: str, parent_flat_info: pd.DataFrame):
+        for a_cage in flat_info.keys():
+            parent_names = flat_info[a_cage][0]
+            name_e_map = {}
+            for a_parent in parent_names:
+                name_e_map.update({parent_flat_info[a_parent][1]: a_parent})
+            new_parent_names = []
+            for a_e in sorted(name_e_map.keys())[:self.ctl_parent_num]:
+                new_parent_names.append(name_e_map[a_e])
+            flat_info[a_cage][0] = new_parent_names
+        flat_info.to_pickle(info_path)
+        return flat_info
 
 
 
@@ -119,12 +138,27 @@ class Path_Parser():
                     for a_line in r_file.readlines():
                         w_file.write(a_line)
 
-        flat_yes_list = []
         add_num_list = list(range(self.start, self.q_add_num + self.step, self.step))
-        for i in add_num_list:
-            addon_path = os.path.join(self.q_cage.workbase, f'{i}addons')
-            a_flat_yes_info = pd.read_pickle(os.path.join(addon_path, 'flat_yes_info.pickle'))
-            flat_yes_list.append(a_flat_yes_info)
+        flat_yes_list = []
+
+        if self.ctr_path:
+            assert len(add_num_list) > 2, print(
+                'Current quary addon number is less than 3 steps away from the begining.\n'
+                'Do not need control pathes.')
+            for ii, i in enumerate(add_num_list):
+                info_path = os.path.join(self.q_cage.workbase, f'{i}addons', 'flat_yes_info.pickle')
+                a_flat_yes_info = pd.read_pickle(info_path)
+                if ii < 2:
+                    flat_yes_list.append(a_flat_yes_info)
+                else:
+                    parent_flat_info = pd.read_pickle(os.path.join(self.q_cage.workbase, f'{i-self.step}addons', 'flat_yes_info.pickle'))
+                    sorted_flat_yes_info = self._sort_parent(flat_info=a_flat_yes_info, info_path=info_path, parent_flat_info=parent_flat_info)
+                    flat_yes_list.append(sorted_flat_yes_info)
+        else:
+            for i in add_num_list:
+                info_path = os.path.join(self.q_cage.workbase, f'{i}addons', 'flat_yes_info.pickle')
+                a_flat_yes_info = pd.read_pickle(info_path)
+                flat_yes_list.append(a_flat_yes_info)
 
         # Query the path of some low e isomers
         self.q_low_e_num = min(self.q_low_e_num, Max_q_rank)
@@ -151,6 +185,8 @@ class Path_Parser():
             info = pd.DataFrame({'pathway': pathways, 'name': name_lists, 'e_list': e_lists, 'e_area': e_areas})
             sorted_info = info.sort_values(by='e_area')
             sorted_info.index = sorted(sorted_info.index)
+            if self.ctr_path:
+                sorted_info = sorted_info[sorted_info.index < self.max_path_num]
             sorted_info.to_pickle(info_path)
 
             # Get relatively energy info
