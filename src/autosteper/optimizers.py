@@ -261,8 +261,7 @@ class XTB_Optimizer(Optimizer):
 class ASE_Optimizer(Optimizer):
     def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
         super(ASE_Optimizer, self).__init__(opt_para=opt_para, checker=checker, cage=cage)
-        self.is_pll = opt_para['is_pll']
-        if self.is_pll:
+        if 'pll_para' in opt_para.keys():
             if self.is_Opt_Twice:
                 self.pll_unit_init = opt_para['pll_para']['pll_unit_init']
                 self.pll_unit_final = opt_para['pll_para']['pll_unit_final']
@@ -271,6 +270,9 @@ class ASE_Optimizer(Optimizer):
             self.num_worker = opt_para['pll_para']['num_worker']
             self.cpu_per_worker = opt_para['pll_para']['cpu_per_worker']
             self.base_node = opt_para['pll_para']['base_node']
+            self.is_pll = True
+        else:
+            self.is_pll = False
         self.calc = opt_para['calculator']
         self.fmax = opt_para['fmax']
         self.ase_optimizer = opt_para['ase_optimizer']
@@ -326,6 +328,19 @@ class ASE_Optimizer(Optimizer):
         shutil.rmtree(path_temp)
 
     def opt_once(self):
+
+        # if self.cage.add_num <= 6:
+        #     old_workbase = os.path.join(r'/home/mkliu/schnet_opt/paper_4_27/step/C84_11_v2',
+        #                                 f'{str(self.cage.add_num)}addons', 'opt_100')
+        # else:
+        #     old_workbase = os.path.join(r'/home/mkliu/schnet_opt/paper_4_27/step/C84_11',
+        #                                 f'{str(self.cage.add_num)}addons', 'opt_100')
+        #
+        # for a_file in os.listdir(self.path_raw_init):
+        #     folder_name = a_file[:-4]
+        #     if folder_name in os.listdir(old_workbase):
+        #         shutil.copytree(os.path.join(old_workbase, folder_name), dst=os.path.join(self.path_opt_init, folder_name))
+
         raw_num = len(os.listdir(self.path_raw_init))
         if self.is_pll and raw_num >= self.num_worker:
             self.run_a_batch_parallel(path_source=self.path_raw_init, raw_num=raw_num)

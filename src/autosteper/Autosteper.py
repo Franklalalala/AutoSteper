@@ -1,13 +1,11 @@
+import shutil
 import os
 import pandas as pd
-from autosteper.cage import name2seq
+from ase.units import Hartree, eV
+from autosteper.cage import name2seq, blk_list
 from autosteper.generator import Generator
 from autosteper.optimizers import *
 from autosteper.path_parser import Path_Parser
-import shutil
-from ase.units import Hartree, eV
-import numpy as np
-
 
 Hartree2eV = Hartree/eV
 class AutoSteper():
@@ -26,11 +24,7 @@ class AutoSteper():
             self.stop = para['run_para']['stop']
             self.step = para['run_para']['step']
             self.wht_list_para = para['run_para']['wht_list_para']
-            if 'has_blk_list' in para['run_para'].keys():
-                self.has_blk_list = para['run_para']['has_blk_list']
-                self.blk_list_para = para['run_para']['blk_list_para']
-            else:
-                self.has_blk_list = False
+
         if 'path_para' in para.keys():
             self.path_parser = Path_Parser(path_para=para['path_para'], step=self.step,
                                            workbase=para['workbase'], start=self.start,
@@ -48,6 +42,9 @@ class AutoSteper():
             self.ps_cut_para = para['pre_scan_para']['ps_cut_para']
         else:
             self.is_pre_scan = False
+
+        if 'blk_para' in para.keys():
+            self.cage.blk_list = blk_list(size=self.cage.size, blk_para=para['blk_para'])
 
     def _get_yes_info(self, all_parent_info: dict=None):
         cwd_ = os.getcwd()
@@ -90,33 +87,6 @@ class AutoSteper():
         flat_yes_info_df = pd.DataFrame(flat_yes_info)
         flat_yes_info_df.to_pickle(path='flat_yes_info.pickle')
         return deep_yes_path, os.path.abspath('flat_yes_info.pickle')
-
-    def _read_blk_list(self):
-        def _dump_a_name():
-            _, _0, bin_arr = name2seq(name=a_name, cage_size=self.cage.size)
-            self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
-        if 'mode' in self.blk_list_para.keys() and self.blk_list_para['mode'] != None:
-            prev_deep_yes = pd.read_pickle('deep_yes_info.pickle')
-            name_list = list(prev_deep_yes['name'])
-            if self.blk_list_para['mode'] == 'rank':
-                for a_name in name_list[-self.blk_list_para['rank']:]:
-                    _dump_a_name()
-            elif self.blk_list_para['mode'] == 'value':
-                max_e = max(prev_deep_yes['energy'])
-                for idx, a_e in enumerate(prev_deep_yes['energy'][::-1]):
-                    if a_e > max_e - self.blk_list_para['value']/Hartree2eV:
-                        a_name = name_list[-(idx + 1)]
-                        _dump_a_name()
-            elif self.blk_list_para['mode'] == 'value_rank':
-                max_e = max(prev_deep_yes['energy'])
-                for idx, a_e in enumerate(prev_deep_yes['energy'][::-1]):
-                    if a_e > (max_e - self.blk_list_para['value']/Hartree2eV) and idx < self.blk_list_para['rank']:
-                        a_name = name_list[-(idx + 1)]
-                        _dump_a_name()
-            else:
-                raise RuntimeError(
-                    'Please check your black list parameter.\nCurrently only support: None, rank, value and value_rank.')
-
 
     def _post_pre_scan(self):
         def _copy_file():
@@ -238,7 +208,7 @@ class AutoSteper():
         return step_status
 
     def _take_a_step(self):
-        def _step_unit():
+        def _build_unit():
             prev_xyz_path = prev_deep_yes['xyz_path'][idx]
             prev_name = prev_deep_yes['name'][idx]
             prev_seq, prev_addon_set, _ = name2seq(name=prev_name, cage_size=self.cage.size)
@@ -246,26 +216,26 @@ class AutoSteper():
             self.generator.gen_seq(mode='step', cage=self.cage, gen_out_path=sub_nauty_o, prev_seq=prev_seq)
             if is_pre_scan:
                 self.all_parent_info, self.pre_scan_map = self.generator.build(is_first=False,
-                                                            gen_out_path=sub_nauty_o,
-                                                            dump_folder=self.optimizer.path_raw_init,
-                                                            cage=self.cage,
-                                                            prev_xyz_path=prev_xyz_path,
-                                                            parent_info=self.all_parent_info,
-                                                            prev_addon_set=prev_addon_set,
-                                                            parent_name=prev_name,
-                                                            calc=self.ps_calc,
-                                                            pre_scan_map=self.pre_scan_map
-                                                            )
+                                                                               gen_out_path=sub_nauty_o,
+                                                                               dump_folder=self.optimizer.path_raw_init,
+                                                                               cage=self.cage,
+                                                                               prev_xyz_path=prev_xyz_path,
+                                                                               parent_info=self.all_parent_info,
+                                                                               prev_addon_set=prev_addon_set,
+                                                                               parent_name=prev_name,
+                                                                               calc=self.ps_calc,
+                                                                               pre_scan_map=self.pre_scan_map
+                                                                               )
             else:
                 self.all_parent_info, _ = self.generator.build(is_first=False,
-                                                            gen_out_path=sub_nauty_o,
-                                                            dump_folder=self.optimizer.path_raw_init,
-                                                            cage=self.cage,
-                                                            prev_xyz_path=prev_xyz_path,
-                                                            parent_info=self.all_parent_info,
-                                                            prev_addon_set=prev_addon_set,
-                                                            parent_name=prev_name
-                                                            )
+                                                               gen_out_path=sub_nauty_o,
+                                                               dump_folder=self.optimizer.path_raw_init,
+                                                               cage=self.cage,
+                                                               prev_xyz_path=prev_xyz_path,
+                                                               parent_info=self.all_parent_info,
+                                                               prev_addon_set=prev_addon_set,
+                                                               parent_name=prev_name
+                                                               )
 
         self.cage.set_add_num(self.new_add_num)
 
@@ -275,12 +245,6 @@ class AutoSteper():
         else:
             is_pre_scan = False
 
-        if self.has_blk_list and self.cage.add_num >= self.blk_list_para['start_blk_num']:
-            has_blk_list = True
-            self.checker.has_blk_list = True
-        else:
-            has_blk_list = False
-
         self.optimizer.set_init_folders()
         self.all_parent_info = {}
         sub_nauty_path = 'sub_nauty'
@@ -289,22 +253,25 @@ class AutoSteper():
         prev_deep_yes = pd.read_pickle(self.prev_deep_yes)
         if self.wht_list_para['mode'] == 'rank':
             for idx in range(min(len(prev_deep_yes['energy']), self.wht_list_para['rank'])):
-                _step_unit()
+                _build_unit()
         elif self.wht_list_para['mode'] == 'value_rank':
             for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
                 if a_prev_energy > prev_deep_yes['energy'][0] + self.wht_list_para['value']/Hartree2eV:
+                    idx = idx - 1
                     break
                 if idx == self.wht_list_para['rank']:
+                    idx = idx - 1
                     break
-                _step_unit()
+                _build_unit()
         elif self.wht_list_para['mode'] == 'value':
             for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
                 if a_prev_energy > prev_deep_yes['energy'][0] + self.wht_list_para['value']/Hartree2eV:
+                    idx = idx - 1
                     break
-                _step_unit()
+                _build_unit()
         elif self.wht_list_para['mode'] == None:
             for idx, a_prev_energy in enumerate(prev_deep_yes['energy']):
-                _step_unit()
+                _build_unit()
         else:
             raise RuntimeError('Please check your run cutoff mode keyword.\nCurrently only support: None, rank, value and value_rank.')
         prev_flat_yes = pd.read_pickle(self.prev_flat_yes)
@@ -319,11 +286,20 @@ class AutoSteper():
         if is_pre_scan:
             self._post_pre_scan()
 
+        if self.cage.blk_list:
+            if (self.cage.blk_list.end_chk_num - self.step) > self.cage.add_num >= self.cage.blk_list.start_clct_num:
+                self.cage.has_blk_list = True
+            else:
+                self.cage.has_blk_list = False
+
         step_status = self.optimizer.opt()
         self.prev_deep_yes, self.prev_flat_yes = self._get_yes_info(all_parent_info=self.all_parent_info)
 
-        if has_blk_list:
-            self._read_blk_list()
+        if self.cage.has_blk_list:
+            if self.cage.blk_list.clct_unstb:
+                self.cage.blk_list.clct_unstable(info_path=self.prev_deep_yes)
+            else:
+                self.cage.blk_list.blk_list_arr = self.cage.blk_list.failed_arr
 
         return step_status
 

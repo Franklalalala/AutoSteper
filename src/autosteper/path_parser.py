@@ -235,7 +235,7 @@ class Path_Parser():
             np.save(file=os.path.join(q_rank_workbase, f'Path_relative_energy.npy'), arr=rel_e_array)
             # Plot relative energy for path rank
             rel_e_array = rel_e_array[:self.q_path_num, :]
-            fig_1 = plt.figure(dpi=400)
+            fig_1 = plt.figure(dpi=400, figsize=(len(add_num_list), self.q_path_num))
             cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
             rel_e_df = pd.DataFrame(rel_e_array)
             rel_e_df.columns = [0, *add_num_list]
@@ -258,7 +258,7 @@ class Path_Parser():
             np.save(file=os.path.join(q_rank_workbase, f'Isomer_relative_energy.npy'), arr=isomer_rel_e)
             isomer_rel_e = isomer_rel_e[:self.q_path_num, :]
             # Simple plot
-            fig_2 = plt.figure(dpi=400)
+            fig_2 = plt.figure(dpi=400, figsize=(len(add_num_list), self.q_path_num))
             cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
             isomer_rel_e_df = pd.DataFrame(isomer_rel_e)
             isomer_rel_e_df.columns = [0, *add_num_list]

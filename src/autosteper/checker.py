@@ -180,8 +180,8 @@ class Checker():
             _, init_addonset, bin_arr = name2seq(a_folder, cage_size=self.cage.size)
             if status_code:
                 failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                if self.has_blk_list:
-                    self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
+                if self.cage.has_blk_list:
+                    self.cage.blk_list.clct_failed(a_failed_arr=bin_arr)
             else:
                 if init_addonset == opted_addonset:
                     if is_init == True and nimages < init_cycle:
@@ -192,13 +192,13 @@ class Checker():
                 elif len(init_addonset) == len(opted_addonset):
                     status_code = 2
                     failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                    if self.has_blk_list:
-                        self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
+                    if self.cage.has_blk_list:
+                        self.cage.blk_list.clct_failed(a_failed_arr=bin_arr)
                 else:
                     status_code = 1
                     failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                    if self.has_blk_list:
-                        self.cage.failed_bin_arr = np.vstack((self.cage.failed_bin_arr, bin_arr))
+                    if self.cage.has_blk_list:
+                        self.cage.blk_list.clct_failed(a_failed_arr=bin_arr)
 
         if is_init:
             with open('init_yes_paths', 'a') as f:

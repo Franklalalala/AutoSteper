@@ -120,8 +120,8 @@ class Generator():
                     name, addon_set, _ = seq2name(seq=a_seq, cage=cage)
                     _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
             return pre_scan_map
-        # Do not have a black list
-        elif len(cage.failed_bin_arr.shape) == 1:
+        # Do not have a black list or blak list is empty
+        elif cage.has_blk_list == False or len(cage.blk_list.blk_list_arr.shape) == 1:
             with open(gen_out_path, 'r') as file:
                 for a_seq in file.readlines():
                     name, new_addon_set, a_bin_arr = seq2name(seq=a_seq, cage=cage)
@@ -132,6 +132,7 @@ class Generator():
                         _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
                         parent_info.update({name: [[parent_name]]})
             return parent_info, pre_scan_map
+        # Have a black list
         else:
             addon_set_list = []
             q_bin_arr_list = []
@@ -148,16 +149,10 @@ class Generator():
                         parent_info.update({name: [[parent_name]]})
             # Check black list in a batch
             if len(addon_set_list) > 0:
-                failed_bin_arr_T = cage.failed_bin_arr.T
-                chk_arr = failed_bin_arr_T.sum(axis=0)
-                q_bin_arrs = np.array(q_bin_arr_list)
-                res_arrs = q_bin_arrs @ failed_bin_arr_T - chk_arr
-                for idx in range(len(addon_set_list)):
-                    if 0 in res_arrs[idx]:
-                        continue
-                    else:
-                        addon_set = addon_set_list[idx]
-                        name = name_list[idx]
-                        _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
+                uncutted_idxes = cage.blk_list.chk_blk(q_bin_arr_list=q_bin_arr_list)
+                for an_idx in uncutted_idxes:
+                    addon_set = addon_set_list[an_idx]
+                    name = name_list[an_idx]
+                    _build_unit(old_cage=old_cage.copy(), old_coords=old_coords.copy())
             return parent_info, pre_scan_map
 
