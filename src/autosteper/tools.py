@@ -3,7 +3,7 @@ from numpy import sin, cos
 import pandas as pd
 import os
 from ase.atoms import Atoms
-
+from ase.neighborlist import build_neighbor_list
 
 
 def rotate_around_axis(norm_axis: np.array, old_vec: np.array, theta: float):
@@ -33,3 +33,46 @@ def read_xtb_log(log_path):
             positions.append([float(x), float(y), float(z)])
         last_image = Atoms(symbols=symbols, positions=positions)
     return nimages, last_image
+
+
+def sort_atomic(atoms: Atoms):
+    cage = Atoms()
+    addon = Atoms()
+    for an_atom in atoms:
+        if an_atom.symbol == 'C':
+            cage.append(an_atom)
+        else:
+            addon.append(an_atom)
+    pristine_cage = cage.copy()
+    cage.extend(addon)
+    return pristine_cage, cage
+
+
+def strip_extraFullerene(atoms: Atoms, is_group: bool=None, group: str=None, cage_size: int=None):
+    if is_group:
+        pristine_cage, atoms = deal_group(atoms=atoms, group=group, cage_size=cage_size)
+    else:
+        pristine_cage, atoms = sort_atomic(atoms=atoms)
+    if group in ['CH3', 'CF3']:
+        cutoffs = [natural_cutoffs(pristine_cage)[0]] * len(atoms)
+        neighborlist = NeighborList(cutoffs, skin=0.15, bothways=True, self_interaction=False)
+    else:
+        neighborlist = build_neighbor_list(atoms=atoms, skin=0.15, bothways=True, self_interaction=False)
+    dok_matrix = neighborlist.get_connectivity_matrix()
+    bonds = np.array([*dok_matrix.keys()])
+    map_dict = dict()
+    for i in range(bonds.shape[0]):
+        bond = bonds[i]
+        symbol_0 = atoms[bond[0]].symbol
+        symbol_1 = atoms[bond[1]].symbol
+        if not symbol_0 == symbol_1:
+            if bond[0] < bond[1]:
+                if symbol_0 == 'C':
+                    cage_element_idx = bond[0]
+                    addon_idx = bond[1]
+                else:
+                    cage_element_idx = bond[1]
+                    addon_idx = bond[0]
+                map_dict.update({addon_idx: cage_element_idx})
+    addon_set = set(map_dict.values())
+    return pristine_cage, addon_set

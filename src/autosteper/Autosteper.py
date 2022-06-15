@@ -7,6 +7,7 @@ from autosteper.generator import Generator
 from autosteper.optimizers import *
 from autosteper.path_parser import Path_Parser
 
+
 Hartree2eV = Hartree/eV
 class AutoSteper():
     def __init__(self, para: dict):
@@ -50,7 +51,7 @@ class AutoSteper():
         cwd_ = os.getcwd()
         deep_yes_path = os.path.join(cwd_, 'deep_yes_info.pickle')
         if os.path.exists(deep_yes_path):
-            return deep_yes_path
+            return deep_yes_path, os.path.abspath('flat_yes_info.pickle')
         flat_yes_info = {}
         name_list = []
         energy_list = []

@@ -102,7 +102,7 @@ class Generator():
             if not calc == None:
                 old_cage.calc = calc
                 # different api may have different ways to get e
-                e = old_cage.get_total_energy()
+                e = old_cage.get_total_energy()[0][0]
                 pre_scan_map.update({e: name})
                 write(filename=os.path.join(dump_folder, f'{name}.xyz'), format='xyz', images=old_cage, comment=str(e))
             else:
