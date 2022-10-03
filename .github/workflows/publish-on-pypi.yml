@@ -40,5 +40,5 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: franklalalala
-        password: frank685231
+        password: ${{ secrets.pypi_password }}
         verbose: true
