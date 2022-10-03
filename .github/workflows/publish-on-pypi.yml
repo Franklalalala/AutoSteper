@@ -10,9 +10,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment:
-	name: production
-
+    environment: 
+      name: production
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
