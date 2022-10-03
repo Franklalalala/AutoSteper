@@ -6,75 +6,13 @@ from ase.atoms import Atoms
 import numpy as np
 from ase.units import Hartree, eV
 import pandas as pd
-
-
-Hartree2eV = Hartree/eV
-class blk_list():
-    def __init__(self, size: int, blk_para: dict=None):
-        self.start_clct_num = blk_para['start_clct_num']
-        self.end_chk_num = blk_para['end_chk_num']
-        self.clct_unstb = blk_para['clct_unstb']
-        self.failed_arr = np.ones(size)
-        if self.clct_unstb:
-            self.unstb_para = blk_para['unstb_para']
-            self.collector = None
-            self.container = []
-            self.container_size = self.unstb_para['container_size']
-            self.cage_size = size
-
-    def clct_failed(self, a_failed_arr: np.array):
-        self.failed_arr = np.vstack((self.failed_arr, a_failed_arr))
-
-    def _clct_a_name(self, a_name):
-        _, _0, bin_arr = name2seq(name=a_name, cage_size=self.cage_size)
-        self.collector = np.vstack((self.collector, bin_arr))
-
-    def clct_unstable(self, info_path: str):
-        self.collector = np.ones(self.cage_size)
-        deep_yes = pd.read_pickle(info_path)
-        name_list = list(deep_yes['name'])
-        if self.unstb_para['mode'] == 'rank':
-            for a_name in name_list[-self.unstb_para['rank']:]:
-                self._clct_a_name(a_name=a_name)
-        elif self.unstb_para['mode'] == 'value':
-            max_e = max(deep_yes['energy'])
-            for idx, a_e in enumerate(deep_yes['energy'][::-1]):
-                if a_e > max_e - self.unstb_para['value'] / Hartree2eV:
-                    a_name = name_list[-(idx + 1)]
-                    self._clct_a_name(a_name=a_name)
-        elif self.unstb_para['mode'] == 'value_rank':
-            max_e = max(deep_yes['energy'])
-            for idx, a_e in enumerate(deep_yes['energy'][::-1]):
-                if a_e > (max_e - self.unstb_para['value'] / Hartree2eV) and idx < self.unstb_para['rank']:
-                    a_name = name_list[-(idx + 1)]
-                    self._clct_a_name(a_name=a_name)
-        else:
-            raise RuntimeError(
-                'Please check your black list parameter.\nCurrently only support: rank, value and value_rank.')
-
-        self.container.append(self.collector.copy())
-        if len(self.container) > self.container_size:
-            del self.container[0]
-        self.blk_list_arr = self.failed_arr
-        for an_unstable_arr in self.container:
-            self.blk_list_arr = np.vstack((self.blk_list_arr, an_unstable_arr))
-
-    def chk_blk(self, q_bin_arr_list: list):
-        blk_bin_arr_T = self.blk_list_arr.T
-        res_arrs = np.array(q_bin_arr_list) @ blk_bin_arr_T - blk_bin_arr_T.sum(axis=0)
-        uncutted_idx_list = []
-        for an_idx in range(len(q_bin_arr_list)):
-            if not 0 in res_arrs[an_idx]:
-                uncutted_idx_list.append(an_idx)
-        return uncutted_idx_list
+from autosteper.tools import get_low_e_ranks
 
 
 class Cage():
-    def __init__(self, pristine_path, workbase, add_num: int=None):
-        self.pristine_path = pristine_path
+    def __init__(self, pristine_path):
+        self.pristine_path = os.path.abspath(pristine_path)
         self.name, fmt = os.path.splitext(os.path.basename(pristine_path))
-        self.workbase = os.path.join(workbase, self.name)
-        os.makedirs(self.workbase, exist_ok=True)
         # parameter for standard name
         self.atoms = read(pristine_path, format=fmt[1:])
         symbol_set = self.atoms.symbols.species()
@@ -82,11 +20,14 @@ class Cage():
         self.symbol = self.atoms[0].symbol
         self.centre = self.atoms.get_positions().mean(axis=0)
         self.size = len(self.atoms)
-        self.has_blk_list = False
-        self.blk_list = None
         self.max_add_36_size = len(to_36_base(int('1'*self.size, 2)))
         # graph6str
         self._get_graph6str()
+        self.blk_list = None
+        self.has_blk_list = False
+        self.is_pre_scan = False
+        self.ps_num_list = []
+        self.calc = None
 
     def _get_graph6str(self):
         f = FullereneFamily(spiral=0, atoms=self.atoms)
@@ -94,11 +35,26 @@ class Cage():
         if os.name == 'posix':
             self.graph6str = self.graph6str.replace('`', '\\`')
 
+    def set_workbase(self, root: str):
+        self.workbase = os.path.abspath(os.path.join(root, self.name))
+        os.makedirs(self.workbase, exist_ok=True)
+
     def set_add_num(self, add_num: int=None):
         self.add_num = add_num
         self.addon_path = os.path.join(self.workbase, f'{self.add_num}addons')
         os.makedirs(name=self.addon_path, exist_ok=True)
         os.chdir(self.addon_path)
+
+        # blk is relatively late to apply (one step)
+        if self.blk_list:
+            if add_num in self.blk_list.num_list:
+                self.has_blk_list = True
+            else:
+                self.has_blk_list = False
+        if add_num in self.ps_num_list:
+            self.is_pre_scan = True
+        else:
+            self.is_pre_scan = False
 
 
 def to_36_base(num):
@@ -136,3 +92,56 @@ def seq2name(seq: str, cage: Cage):
         base_36_name = '0' + base_36_name
     addon_set = set(addon_list)
     return base_36_name, addon_set, bin_arr
+
+
+class blk_list():
+    def __init__(self, size: int, blk_para: dict = None):
+        self.num_list = range(blk_para['start_clct_num'], blk_para['final_chk_num']+1)
+        self.clct_unstb = blk_para['clct_unstb']
+        self.failed_arr = np.ones(size)
+        self.blk_list_arr = np.ones(size)
+        if self.clct_unstb:
+            self.unstb_para = blk_para['unstb_para']
+            self.collector = None
+            self.container = []
+            self.container_size = blk_para['container_size']
+            self.cage_size = size
+
+    def clct_failed(self, status_info_path: str):
+        status_info = pd.read_pickle(status_info_path)
+        status = status_info.T[0]
+        names = status_info.columns
+        for idx, a_status in enumerate(status):
+            if a_status == 0:
+                continue
+            a_name = names[idx]
+            _, _0, a_failed_arr = name2seq(name=a_name, cage_size=self.cage_size)
+            self.failed_arr = np.vstack((self.failed_arr, a_failed_arr))
+
+    def clct_unstable(self, info_path: str):
+        self.collector = np.ones(self.cage_size)
+        deep_yes = pd.read_pickle(info_path)
+        passed_info = pd.read_pickle(info_path)
+        e_arr = np.array(passed_info['energy'])
+        names = passed_info['name']
+        for a_rank in get_low_e_ranks(e_arr=e_arr, para=self.unstb_para, is_reverse=True):
+            a_name = names[a_rank]
+            _, _0, bin_arr = name2seq(name=a_name, cage_size=self.cage_size)
+            self.collector = np.vstack((self.collector, bin_arr))
+
+        self.container.append(self.collector.copy())
+        if len(self.container) > self.container_size:
+            del self.container[0]
+        self.blk_list_arr = self.failed_arr
+        for an_unstable_arr in self.container:
+            self.blk_list_arr = np.vstack((self.blk_list_arr, an_unstable_arr))
+
+    def chk_blk(self, q_bin_arr_list: list):
+        blk_bin_arr_T = self.blk_list_arr.T
+        res_arrs = np.array(q_bin_arr_list) @ blk_bin_arr_T - blk_bin_arr_T.sum(axis=0)
+        uncutted_idx_list = []
+        for an_idx in range(len(q_bin_arr_list)):
+            if not 0 in res_arrs[an_idx]:
+                uncutted_idx_list.append(an_idx)
+        return uncutted_idx_list
+

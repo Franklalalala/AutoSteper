@@ -1,31 +1,31 @@
 import os
-from autosteper.tools import read_xtb_log
-from autosteper.cage import name2seq, Cage
-from ase.io import read, write
-from ase.neighborlist import NeighborList, natural_cutoffs, build_neighbor_list
-from ase.atoms import Atoms
+import shutil
+
+from typing import Union
 import numpy as np
-from ase.io.gaussian import read_gaussian_out
+import pandas as pd
+from ase.atoms import Atoms
+from ase.io import read
+from ase.neighborlist import NeighborList, natural_cutoffs, build_neighbor_list
+from autosteper.cage import name2seq, Cage
 
 
 class Checker():
-    def __init__(self, chk_skin: float, group: str, cage: Cage, has_blk_list: bool=False):
-        self.skin = chk_skin
+    def __init__(self, pst_cage: Cage, group: str, skin: float=0.15):
+        self.skin = 0.15
         self.group = group
-        self.cage = cage
-        self.has_blk_list = has_blk_list
-
+        self.pst_cage = pst_cage
 
     def check_ADJ(self, dok_matrix):
-        for idx, an_atom in enumerate(self.last_image):
+        for idx, an_atom in enumerate(self.q_atoms):
             dok_adj = dok_matrix[idx]
             adj_array = dok_adj.tocoo().col
             len_adj_arr = len(adj_array)
-            if an_atom.symbol == self.cage.symbol:
+            if an_atom.symbol == self.pst_cage.symbol:
                 if len_adj_arr == 4:
                     flag = 0
                     for ii in adj_array:
-                        if self.last_image[ii].symbol in [self.group, 'H', 'O']:
+                        if self.q_atoms[ii].symbol in [self.group, 'H', 'O']:
                             flag = 1
                             break
                     if flag:
@@ -36,7 +36,7 @@ class Checker():
                     return 4
                 elif len_adj_arr == 3:
                     for ii in adj_array:
-                        if self.last_image[ii].symbol in [self.group, 'H', 'O']:
+                        if self.q_atoms[ii].symbol in [self.group, 'H', 'O']:
                             return 4
                 elif len_adj_arr > 4:
                     return 6
@@ -48,10 +48,10 @@ class Checker():
 
     def check_group_intactness(self):
         dummy_image = Atoms()
-        neighborlist = build_neighbor_list(self.last_image, bothways=True, self_interaction=False, skin=self.skin)
+        neighborlist = build_neighbor_list(self.q_atoms, bothways=True, self_interaction=False, skin=self.skin)
         dok_matrix = neighborlist.get_connectivity_matrix()
         if self.group == 'OH':
-            for idx, an_atom in enumerate(self.last_image):
+            for idx, an_atom in enumerate(self.q_atoms):
                 if an_atom.symbol == 'H':
                     dok_adj = dok_matrix[idx]
                     adj_array = dok_adj.tocoo().col
@@ -61,154 +61,126 @@ class Checker():
                     dummy_image.append(an_atom)
 
         if self.group == 'CH3':
-            for idx, an_atom in enumerate(self.last_image):
+            for idx, an_atom in enumerate(self.q_atoms):
                 if an_atom.symbol == 'H':
                     dok_adj = dok_matrix[idx]
                     adj_array = dok_adj.tocoo().col
                     if not len(adj_array) == 1:
                         return 7, None
-                elif idx > self.cage.size - 1:
+                elif idx > self.pst_cage.size - 1:
                     an_atom.symbol = 'H'
                     dummy_image.append(an_atom)
                 else:
                     dummy_image.append(an_atom)
 
         if self.group == 'CF3':
-            for idx, an_atom in enumerate(self.last_image):
+            for idx, an_atom in enumerate(self.q_atoms):
                 if an_atom.symbol == 'F':
                     dok_adj = dok_matrix[idx]
                     adj_array = dok_adj.tocoo().col
                     if not len(adj_array) == 1:
                         return 7, None
-                elif idx > self.cage.size - 1:
+                elif idx > self.pst_cage.size - 1:
                     an_atom.symbol = 'H'
                     dummy_image.append(an_atom)
                 else:
                     dummy_image.append(an_atom)
-
         return None, dummy_image
 
-
-
-    def check_last_image(self):
+    def check_a_job(self, q_atoms: Atoms, q_name: str):
+        _, init_addonset, bin_arr = name2seq(q_name, cage_size=self.pst_cage.size)
+        self.q_atoms = q_atoms
         if self.group in ['CH3', 'CF3', 'OH']:
-            group_status, self.last_image = self.check_group_intactness()
+            group_status, self.q_atoms = self.check_group_intactness()
             if group_status:
-                return None, group_status
+                return group_status
         if self.group in ['OH', 'Cl', 'F', 'H', 'Br']:
-            cutoffs = natural_cutoffs(self.last_image)
+            cutoffs = natural_cutoffs(self.q_atoms)
         else:
-            cutoffs = [natural_cutoffs(self.cage.atoms)[0]] * len(self.last_image)
+            cutoffs = [natural_cutoffs(self.pst_cage.atoms)[0]] * len(self.q_atoms)
         neighborlist = NeighborList(cutoffs, skin=self.skin, bothways=True, self_interaction=False)
-        neighborlist.update(self.last_image)
+        neighborlist.update(self.q_atoms)
         dok_matrix = neighborlist.get_connectivity_matrix()
-        ADJ_status = self.check_ADJ(dok_matrix)
+        ADJ_status = self.check_ADJ(dok_matrix=dok_matrix)
         if ADJ_status:
-            return None, ADJ_status
-        else:
-            bonds = np.array([*dok_matrix.keys()])
-            map_dict = dict()
-            for i in range(bonds.shape[0]):
-                bond = bonds[i]
-                symbol_0 = self.last_image[bond[0]].symbol
-                symbol_1 = self.last_image[bond[1]].symbol
-                if not symbol_0 == symbol_1:
-                    if bond[0] < bond[1]:
-                        if symbol_0 == self.cage.symbol:
-                            cage_element_idx = bond[0]
-                            addon_idx = bond[1]
-                        else:
-                            cage_element_idx = bond[1]
-                            addon_idx = bond[0]
-                        map_dict.update({addon_idx: cage_element_idx})
-            addon_set = set(map_dict.values())
-            return addon_set, None
-
-        # Caution!! opt_root should be abs path
-    def check(self, opt_mood: str, opt_root: str, is_init: bool, init_cycle: int=None):
-        # status_code == None means the topology stays unchanged during optimization.
-        # status_code == 1 means at least one addon atom breaks the bond with the cage and becomes a radical during optimization.
-        # status_code == 2 means at least one addon atom breaks the bond with the original addon site and changed to another during optimization.
-        # status_code == 3 means at least one 3 membered carbon ring formed during optimization, which is extremely unstable. (carbon for instance, this can be changed for other elements.)
-        # status_code == 4 means at least one carbon atom only has 2 neighbor carbons or less, which means the cage is broken.
-        # status_code == 5 means at least one addon atom binds with 2 or more atoms.
-        # status_code == 6 means at least one carbon atom has 5 or more neighbors, which means a small cluster is formed.
-        # status_code == 7 means the inner intactness of at least one addon group has broken.
-        yes_list = []
-        failed_list = []
-        wrong_list = []
-        init_yes_list = []
-        opt_root = os.path.abspath(opt_root)
-        for a_folder in os.listdir(opt_root):
-            if opt_mood == 'xtb':
-                log_path = os.path.join(opt_root, a_folder, 'xtbopt.log')
-                if not os.path.exists(log_path):
-                    wrong_list.append(os.path.join(opt_root, a_folder, f'{a_folder}.xyz') + '\n')
-                    continue
-                if is_init:
-                    nimages, self.last_image = read_xtb_log(log_path=log_path)
-                else:
-                    self.last_image = read(log_path, format='xyz')
-
-            elif opt_mood == 'ase':
-                xyz_path = os.path.join(opt_root, a_folder, 'opt.xyz')
-                if not os.path.exists(xyz_path):
-                    wrong_list.append(str(xyz_path) + '\n')
-                    continue
-                self.last_image = read(xyz_path)
-                log_path = os.path.join(opt_root, a_folder, 'opt.log')
-                if is_init:
-                    with open(log_path, 'r') as file:
-                        nimages = len(file.readlines()) - 2
-            elif opt_mood == 'gaussian':
-                log_path = os.path.join(opt_root, a_folder, 'gau.log')
-                if not os.path.exists(log_path):
-                    wrong_list.append(os.path.join(opt_root, a_folder, f'{a_folder}.xyz') + '\n')
-                    continue
-                traj = read_gaussian_out(fd=log_path) # The read_gaussian_out function is slightly changed to get all traj.
-                self.last_image = traj[-1]
-                if is_init:
-                    nimages = len(traj)
-                new_log_path = os.path.join(opt_root, a_folder, 'gau_simple.log')
-                last_xyz_path = os.path.join(opt_root, a_folder, 'gau.xyz')
-                if not os.path.exists(new_log_path):
-                    write(filename=new_log_path, images=traj, format='xyz')
-                    e = self.last_image.get_potential_energy()
-                    write(filename=last_xyz_path, images=self.last_image, format='xyz', comment=f'Energy: {str(e)}')
-
-            opted_addonset, status_code = self.check_last_image()
-            _, init_addonset, bin_arr = name2seq(a_folder, cage_size=self.cage.size)
-            if status_code:
-                failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                if self.cage.has_blk_list:
-                    self.cage.blk_list.clct_failed(a_failed_arr=bin_arr)
-            else:
-                if init_addonset == opted_addonset:
-                    if is_init == True and nimages < init_cycle:
-                        init_yes_list.append(str(log_path) + '\n')
+            return ADJ_status
+        bonds = np.array([*dok_matrix.keys()])
+        map_dict = dict()
+        for i in range(bonds.shape[0]):
+            bond = bonds[i]
+            symbol_0 = self.q_atoms[bond[0]].symbol
+            symbol_1 = self.q_atoms[bond[1]].symbol
+            if not symbol_0 == symbol_1:
+                if bond[0] < bond[1]:
+                    if symbol_0 == self.pst_cage.symbol:
+                        cage_element_idx = bond[0]
+                        addon_idx = bond[1]
                     else:
-                        yes_list.append(str(log_path) + '\n')
+                        cage_element_idx = bond[1]
+                        addon_idx = bond[0]
+                    map_dict.update({addon_idx: cage_element_idx})
+        opted_addonset = set(map_dict.values())
+        if init_addonset == opted_addonset:
+            return 0
+        elif len(init_addonset) == len(opted_addonset):
+            return 2
+        else:
+            return 1
 
-                elif len(init_addonset) == len(opted_addonset):
-                    status_code = 2
-                    failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                    if self.cage.has_blk_list:
-                        self.cage.blk_list.clct_failed(a_failed_arr=bin_arr)
-                else:
-                    status_code = 1
-                    failed_list.append(f'{status_code}' + '          ' + str(log_path) + '\n')
-                    if self.cage.has_blk_list:
-                        self.cage.blk_list.clct_failed(a_failed_arr=bin_arr)
+    # job_status == 0 means the topology stays unchanged during optimization.
+    # job_status == 1 means at least one addon atom breaks the bond with the cage and becomes a radical during optimization.
+    # job_status == 2 means at least one addon atom breaks the bond with the original addon site and changed to another during optimization.
+    # job_status == 3 means at least one 3 membered carbon ring formed during optimization, which is extremely unstable. (carbon for instance, this can be changed for other elements.)
+    # job_status == 4 means at least one carbon atom only has 2 neighbor carbons or less, which means the cage is broken.
+    # job_status == 5 means at least one addon atom binds with 2 or more atoms.
+    # job_status == 6 means at least one carbon atom has 5 or more neighbors, which means a small cluster is formed.
+    # job_status == 7 means the inner intactness of at least one addon group has broken.
+    def check(self, passed_info_path: str, status_info_path: str):
+        check_cwd_ = os.getcwd()
+        passed_info = pd.read_pickle(passed_info_path)
+        status_info = pd.read_pickle(status_info_path)
+        failed_idxes = []
+        failed_status_codes = []
+        failed_job_paths = []
+        q_name = os.path.splitext(os.path.basename(passed_info['xyz_path'][0]))[0]
+        failed_folder_path = os.path.join(check_cwd_, 'cooking')
+        if q_name in os.listdir(failed_folder_path):
+            for idx, a_xyz_path in enumerate(passed_info['xyz_path']):
+                q_atoms = read(a_xyz_path)
+                q_name = os.path.splitext(os.path.basename(a_xyz_path))[0]
+                job_status = self.check_a_job(q_atoms=q_atoms, q_name=q_name)
+                if job_status == 0:
+                    continue
+                status_info[q_name] = job_status
+                failed_status_codes.append(job_status)
+                failed_idxes.append(idx)
+                failed_job_paths.append(os.path.join(failed_folder_path, q_name))
+                os.remove(path=a_xyz_path)
+        else:
+            failed_folder_path = os.path.join(check_cwd_, 'failed')
+            os.makedirs(failed_folder_path, exist_ok=True)
+            for idx, a_xyz_path in enumerate(passed_info['xyz_path']):
+                q_atoms = read(a_xyz_path)
+                q_name = os.path.splitext(os.path.basename(a_xyz_path))[0]
+                job_status = self.check_a_job(q_atoms=q_atoms, q_name=q_name)
+                if job_status == 0:
+                    continue
+                status_info[q_name] = job_status
+                failed_status_codes.append(job_status)
+                failed_idxes.append(idx)
+                failed_new_path = os.path.join(failed_folder_path, q_name+'.xyz')
+                shutil.move(src=a_xyz_path, dst=failed_new_path)
+                failed_job_paths.append(failed_new_path)
 
-        if is_init:
-            with open('init_yes_paths', 'a') as f:
-                f.writelines(init_yes_list)
-        with open('yes_paths', 'w') as f:
-            f.writelines(yes_list)
+        passed_info = passed_info.drop(failed_idxes)
+        passed_info.index = list(range(len(passed_info.index)))
+        passed_info.to_pickle(passed_info_path)
+        status_info.to_pickle(status_info_path)
+        status_codes = list(status_info.T[0])
 
-        with open('failed_paths', 'a') as f:
-            f.writelines(failed_list)
-
-        with open('wrong_paths', 'w') as f:
-            f.writelines(wrong_list)
-
+        failed_info = ''
+        for idx, failed_idx in enumerate(failed_status_codes):
+            failed_info = failed_info + f'{failed_idx}        {failed_job_paths[idx]}\n'
+        with open('failed_job_paths', 'w') as f:
+            f.write(failed_info)
+        return status_codes

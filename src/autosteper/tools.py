@@ -1,9 +1,8 @@
 import numpy as np
-from numpy import sin, cos
 import pandas as pd
-import os
 from ase.atoms import Atoms
 from ase.neighborlist import build_neighbor_list
+from numpy import sin, cos
 
 
 def rotate_around_axis(norm_axis: np.array, old_vec: np.array, theta: float):
@@ -14,7 +13,7 @@ def rotate_around_axis(norm_axis: np.array, old_vec: np.array, theta: float):
                             b * c * (1 - cos(theta)) - a * sin(theta)],
                            [a * c * (1 - cos(theta)) - b * sin(theta), b * c * (1 - cos(theta)) + a * sin(theta),
                             c ** 2 + (1 - c ** 2) * cos(theta)]])
-    new_vec = old_vec@rotate_mat
+    new_vec = old_vec @ rotate_mat
     return new_vec
 
 
@@ -48,7 +47,7 @@ def sort_atomic(atoms: Atoms):
     return pristine_cage, cage
 
 
-def strip_extraFullerene(atoms: Atoms, is_group: bool=None, group: str=None, cage_size: int=None):
+def strip_extraFullerene(atoms: Atoms, is_group: bool = None, group: str = None, cage_size: int = None):
     if is_group:
         pristine_cage, atoms = deal_group(atoms=atoms, group=group, cage_size=cage_size)
     else:
@@ -76,3 +75,47 @@ def strip_extraFullerene(atoms: Atoms, is_group: bool=None, group: str=None, cag
                 map_dict.update({addon_idx: cage_element_idx})
     addon_set = set(map_dict.values())
     return pristine_cage, addon_set
+
+
+def get_low_e_ranks(e_arr: np.ndarray, para: dict, is_reverse: bool=False):
+    assert para['mode'] in ['None', 'rank', 'value',
+                            'value_and_rank', 'rank_and_value',
+                            'value_or_rank', 'rank_or_value'], f'Please check your run cutoff mode keyword.'
+    if para['mode'] == 'None':
+        rank_list = range(len(e_arr))
+    if is_reverse:
+        if para['mode'] == 'rank':
+            rank_list = range(len(e_arr))[::-1][:para['rank']]
+        else:
+            e_arr = e_arr - min(e_arr)
+            max_e = max(e_arr)
+            for idx, a_e in enumerate(e_arr[::-1]):
+                if a_e <= max_e - para['value']:
+                    break
+            if para['mode'] == 'value_and_rank' or para['mode'] == 'rank_and_value':
+                idx = range(min(idx, para['rank']))
+            if para['mode'] == 'value_or_rank' or para['mode'] == 'rank_or_value':
+                idx = range(max(idx, para['rank']))
+            rank_list = range(len(e_arr))[::-1][:idx]
+    else:
+        if para['mode'] == 'rank':
+            rank_list = range(len(e_arr))[:para['rank']]
+        else:
+            e_arr = e_arr - min(e_arr)
+            for idx, a_e in enumerate(e_arr):
+                if a_e > para['value']:
+                    break
+            if para['mode'] == 'value_and_rank' or para['mode'] == 'rank_and_value':
+                idx = range(min(idx, para['rank']))
+            if para['mode'] == 'value_or_rank' or para['mode'] == 'rank_or_value':
+                idx = range(max(idx, para['rank']))
+            rank_list = range(len(e_arr))[:idx]
+
+    if 'nimg_th' in para.keys():
+        new_rank_list = []
+        for idx, a_nimg in enumerate(para['nimages']):
+            if a_nimg >= para['nimg_th']:
+                new_rank_list.append(rank_list[idx])
+        rank_list = new_rank_list
+    for a_rank in rank_list:
+        yield a_rank

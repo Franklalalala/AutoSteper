@@ -1,0 +1,27 @@
+{
+   "total energy":          -0.98268615,
+   "HOMO-LUMO gap/eV":          16.08936156,
+   "electronic energy":          -1.02077251,
+   "dipole": [     0.00000000,     0.00000000,    -0.00000000],
+   "partial charges": [
+       -0.00000000,
+        0.00000000],
+   "atomic dipole moments": [
+   [     0.00000000,     0.00000000,    -0.28642935],
+   [     0.00000000,     0.00000000,     0.28642935]],
+   "atomic quadrupole moments": [
+   [     0.12576018,     0.00000000,     0.12576018,     0.00000000,     0.00000000,    -0.25152036],
+   [     0.12576018,     0.00000000,     0.12576018,     0.00000000,     0.00000000,    -0.25152036]],
+   "number of molecular orbitals": 2,
+   "number of electrons": 2,
+   "number of unpaired electrons": 0,
+   "orbital energies/eV": [
+      -12.64505374,
+        3.44430781],
+   "fractional occupation": [
+        2.00000000,
+        0.00000000],
+   "program call": "/home/mkliu/anaconda3/envs/env001/bin/xtb --opt tight --json H2_5.xyz",
+   "method": "GFN2-xTB",
+   "xtb version": "6.4.1 (a3dbbd7)"
+}

@@ -1,498 +1,460 @@
+import math
 import os
 import shutil
-import math
-from autosteper.cage import Cage
-from autosteper.checker import Checker
-from dpdispatcher import Task, Submission, Machine, Resources
-from ase.io import read, write
-from ase.optimize import *
-from ase.io import read
-from ase.io.gaussian import write_gaussian_in
-import subprocess
+from typing import Optional, Union
 
+import numpy as np
+import pandas as pd
+from ase.io import read, write
+from ase.io.gaussian import read_gaussian_out, write_gaussian_in
+from ase.units import Hartree
+from dpdispatcher import Task, Submission, Machine, Resources
+from autosteper.tools import get_low_e_ranks
+from autosteper.cage import name2seq
+
+
+
+def switch_optimizers(mode: str, para: Union[list, dict]):
+    if mode == 'xtb':
+        return XTB_Optimizer(para)
+    elif mode == 'ase':
+        return ASE_Optimizer(para)
+    elif mode == 'gaussian':
+        return Gaussian_Optimizer(para)
+    elif mode == 'multi':
+        return Multi_Optimizer(para)
+
+# job status code:
+# 0: Normal termination.
+# -1: Failed.
+# -2: Wrong.
+
+# step status code:
+# 0: Normal termination.
+# -1: All jobs failed.
+# -2: At least one job end wrong.
+
+# Energy should be in unit Hartree
 
 class Optimizer():
-    def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
-        self.init_cycle = opt_para['init_cycle']
-        self.is_Opt_Twice = opt_para['is_Opt_Twice']
-        self.deal_wrong_mode = opt_para['deal_wrong_mode']
-        if self.is_Opt_Twice:
-            self.final_cycle = opt_para['final_cycle']
-        self.checker = checker
-        self.cage = cage
+    def __init__(self, opt_para: dict):
+        # self.deal_wrong_mode = opt_para['deal_wrong_mode']
         self.mode = None
-        self.cmd_list = None
-        self.calc = None
-
-    def set_init_folders(self):
-        self.path_raw_init = f'raw_{self.init_cycle}'
-        os.makedirs(exist_ok=True, name=self.path_raw_init)
-        self.path_opt_init = f'opt_{self.init_cycle}'
-        os.makedirs(exist_ok=True, name=self.path_opt_init)
-
-    def set_final_folders(self):
-        self.path_raw_final = 'raw_final'
-        os.makedirs(exist_ok=True, name=self.path_raw_final)
-        self.path_opt_final = 'opt_final'
-        os.makedirs(exist_ok=True, name=self.path_opt_final)
-
-    def run_a_batch(self):
-        pass
-
-    def opt_twice(self):
-        pass
-
-    def opt_once(self):
-        pass
-
-    def opt(self):
-        if self.is_Opt_Twice:
-            status = self.opt_twice()
-        else:
-            status = self.opt_once()
-        return status
-
-
-class XTB_Optimizer(Optimizer):
-    def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
-        super(XTB_Optimizer, self).__init__(opt_para=opt_para, checker=checker, cage=cage)
-        self.xtb_path = opt_para['xtb_path']
-        self.cmd_list = [self.xtb_path, *opt_para['cmd_list']]
+        self.cmd_list = opt_para['cmd_list']
         self.out_list = opt_para['out_list']
+        self.deal_wrong_mode = opt_para['deal_wrong_mode']
         self.resrc_para = opt_para['resrc_para']
         self.mach_para = opt_para['mach_para']
-        self.sub_batch_size = opt_para['sub_batch_size']
-        self.mode = 'xtb'
+        self.checker = None
+        self.is_odd = False
+        if 'has_parity' in opt_para.keys():
+            self.cage_size = opt_para['cage_size']
+            self.has_parity = opt_para['has_parity']
+        else:
+            self.has_parity = False
 
-    # group_size is how many jobs in a single .sub file uploaded.
-    # the old version of this wrapper upload all raw files in path_source in a single submission,
-    # which will be divided into multiple groups, in each group, there will be group size jobs.
-    # if one file failed, the whole submission will terminated, and the results of already calculated jobs will not be transfered to workbase.
-    # It's wasted, so I propose the parameter, sub_batch_size, which will divide the one submission to several small submissions
-    def run_a_batch(self, path_source: str, path_destination: str, cmd_list: list):
-        path_destination = os.path.abspath(path_destination)
+
+    def set_folders(self):
+        self.path_raw = os.path.abspath('raw')
+        os.makedirs(exist_ok=True, name=self.path_raw)
+        self.path_cooking = os.path.abspath('cooking')
+        os.makedirs(exist_ok=True, name=self.path_cooking)
+        self.path_cooked = os.path.abspath('cooked')
+        os.makedirs(exist_ok=True, name=self.path_cooked)
+
+    def simple_chg_parity(self):
+        a_name = os.path.splitext(os.listdir(self.path_raw)[0])[0]
+        _, _0, an_arr = name2seq(name=a_name, cage_size=self.cage_size)
+        add_num = an_arr.sum()
+        if add_num % 2 == 1:
+            self.is_odd = True
+        else:
+            self.is_odd = False
+
+    def pack(self):
+        pass
+
+    def unpack(self):
+        pass
+
+    def run_a_batch(self):
+        run_cwd_ = os.getcwd()
+
+        def _run_unit():
+            try:
+                submission.run_submission()
+            except Exception as e:
+                with open(r'./opt_error.log', 'a') as f:
+                    f.write(str(e) + '\n' + str(self.task_list) + '\n')
+
         self.mach = Machine(batch_type=self.mach_para['batch_type'],
                             context_type=self.mach_para['context_type'],
                             remote_root=self.mach_para['remote_root'],
                             remote_profile=self.mach_para['remote_profile'],
-                            local_root=path_destination)
+                            local_root=self.path_cooking)
         self.resrc = Resources(number_node=self.resrc_para['number_node'],
-                               cpu_per_node = self.resrc_para['cpu_per_node'],
-                               gpu_per_node = self.resrc_para['gpu_per_node'],
-                               group_size = self.resrc_para['group_size'],
-                               queue_name = self.resrc_para['queue_name'],
-                               envs = self.resrc_para['envs']
+                               cpu_per_node=self.resrc_para['cpu_per_node'],
+                               gpu_per_node=self.resrc_para['gpu_per_node'],
+                               group_size=self.resrc_para['group_size'],
+                               queue_name=self.resrc_para['queue_name'],
+                               envs=self.resrc_para['envs']
                                )
-        task_list = []
-        for item in os.listdir(path_source):
+        if self.resrc_para['sub_batch_size'] == None:
+            submission = Submission(work_base=self.path_cooking,
+                                    machine=mach,
+                                    resources=resrc,
+                                    task_list=self.task_list,
+                                    forward_common_files=[],
+                                    backward_common_files=[]
+                                    )
+            _run_unit()
+        else:
+            sub_batch_size = self.resrc_para['sub_batch_size']
+            num_groups = math.ceil(len(self.task_list) / sub_batch_size)
+            for i in range(num_groups):
+                cursor = i * sub_batch_size
+                a_task_list = self.task_list[cursor:cursor + sub_batch_size]
+                submission = Submission(work_base=self.path_cooking,
+                                        machine=self.mach,
+                                        resources=self.resrc,
+                                        task_list=a_task_list,
+                                        forward_common_files=[],
+                                        backward_common_files=[]
+                                        )
+                _run_unit()
+        os.chdir(run_cwd_)
+
+    def prep_unpack(self):
+        self.names = []
+        self.passed_names = []
+        self.e_list = []
+        self.path_list = []
+        self.nimages_list = []
+        self.status_codes = []
+
+    def post_unpack(self):
+        info = pd.DataFrame({'name': self.passed_names, 'energy': self.e_list, 'xyz_path': self.path_list,
+                             'nimages': self.nimages_list})
+        passed_info = info.sort_values(by='energy')
+        passed_info.index = sorted(passed_info.index)
+        passed_info.to_pickle(path='passed_info.pickle')
+        status_info = pd.DataFrame(dict(zip(self.names, [[i] for i in self.status_codes])))
+        status_info.to_pickle('status_info.pickle')
+
+    def deal_wrong_complete(self):
+        deal_wrong_cwd_ = os.getcwd()
+        for self.resrc_para['group_size'], self.resrc_para['sub_batch_size'] in self.resrc_para['wrong_rcs_para']:
+            self.new_raws = os.path.join(deal_wrong_cwd_, 'deal_wrong', 'raw')
+            os.makedirs(self.new_raws)
+            for i_code, a_code in enumerate(self.status_codes):
+                if a_code == -2:
+                    a_wrong_name = self.names[i_code]
+                    shutil.copy(src=os.path.join(deal_wrong_cwd_, 'raw', a_wrong_name + '.xyz'),
+                                dst=os.path.join(self.new_raws, a_wrong_name + '.xyz'))
+            os.chdir('deal_wrong')
+            self.set_folders()
+            self.pack()
+            self.run_a_batch()
+            self.unpack()
+            for a_job in os.listdir('cooking'):
+                shutil.copytree(src=os.path.join('cooking', a_job), dst=os.path.join(deal_wrong_cwd_, 'cooking', a_job),
+                                dirs_exist_ok=True)
+            os.chdir(deal_wrong_cwd_)
+            new_path_list = []
+            for a_xyz_path in self.path_list:
+                a_new_path = os.path.abspath(os.path.join('cooked', os.path.basename(a_xyz_path)))
+                shutil.copy(src=a_xyz_path, dst=a_new_path)
+                new_path_list.append(a_new_path)
+            old_info = pd.read_pickle('passed_info.pickle')
+            new_info = pd.read_pickle(os.path.join(deal_wrong_cwd_, 'deal_wrong', 'passed_info.pickle'))
+            new_info['xyz_path'] = new_path_list
+            info = pd.concat([old_info, new_info], ignore_index=True)
+            sorted_info = info.sort_values(by='energy')
+            sorted_info.index = sorted(sorted_info.index)
+            sorted_info.to_pickle(path='passed_info.pickle')
+            old_status_info = pd.read_pickle('status_info.pickle')
+            for i_code, a_code in enumerate(self.status_codes):
+                if a_code != -2:
+                    old_status_info[self.names[i_code]] = a_code
+            old_status_info.to_pickle('status_info.pickle')
+            shutil.rmtree('deal_wrong')
+
+    def opt(self):
+        if len(os.listdir(self.path_raw)) == 0:
+            raise RuntimeError(f'There are no isomers in {self.path_raw}.\n'
+                               f'Please check this system.')
+        self.pack()
+        self.run_a_batch()
+        self.unpack()
+        if -2 in self.status_codes:
+            if self.deal_wrong_mode == 'Complete':
+                self.deal_wrong_complete()
+                raise RuntimeError(f'Something wrong happened while optimizing isomers in {self.path_cooking}.\n'
+                                   f'Re-opted recursively to get a minimize the wrong jobs.')
+            elif self.deal_wrong_mode == 'Report':
+                raise RuntimeError(f'Something wrong happened while optimizing isomers in {self.path_cooking}.')
+            elif self.deal_wrong_mode == 'Tough':
+                return -2
+        if self.checker:
+            self.status_codes = self.checker.check(passed_info_path= 'passed_info.pickle',
+                                                   status_info_path= 'status_info.pickle')
+        if 0 not in self.status_codes:
+            return -1
+        else:
+            return 0
+
+
+class XTB_Optimizer(Optimizer):
+    def __init__(self, opt_para: dict):
+        super(XTB_Optimizer, self).__init__(opt_para=opt_para)
+        self.mode = 'xtb'
+
+    def pack(self):
+        if self.has_parity:
+            self.simple_chg_parity()
+        if self.is_odd:
+            self.cmd_list.append('--uhf 1')
+        self.task_list = []
+        for item in os.listdir(self.path_raw):
             isomer_name = os.path.splitext(item)[0]
-            os.makedirs(os.path.join(path_destination, isomer_name), exist_ok=True)
-            path_item = os.path.join(path_source, item)
-            shutil.copy(path_item, os.path.join(path_destination, isomer_name, item))
-            cmd_list.append(item)
-            a_task = Task(command=' '.join(cmd_list),
+            os.makedirs(os.path.join(self.path_cooking, isomer_name), exist_ok=True)
+            shutil.copy(os.path.join(self.path_raw, item), os.path.join(self.path_cooking, isomer_name, item))
+            self.cmd_list.append(item)
+            a_task = Task(command=' '.join(self.cmd_list),
                           task_work_path=f"{isomer_name}/",
                           forward_files=[item],
                           backward_files=self.out_list
                           )
-            task_list.append(a_task)
-            del cmd_list[-1]
+            self.task_list.append(a_task)
+            del self.cmd_list[-1]
+        if self.is_odd:
+            del self.cmd_list[-1]
 
-        if self.sub_batch_size == None:
-            submission = Submission(work_base=path_destination,
-                                    machine=self.mach,
-                                    resources=self.resrc,
-                                    task_list=task_list,
-                                    forward_common_files=[],
-                                    backward_common_files=[]
-                                    )
-            try:
-                submission.run_submission()
-            except Exception as e:
-                with open('opt_error.log', 'a') as f:
-                    f.write(str(e) + '\n' + str(task_list) + '\n')
-
-        else:
-            num_groups = math.ceil(len(task_list) / self.sub_batch_size)
-            for i in range(num_groups):
-                cursor = i * self.sub_batch_size
-                a_task_list = task_list[cursor:cursor + self.sub_batch_size]
-                submission = Submission(work_base=path_destination,
-                                        machine=self.mach,
-                                        resources=self.resrc,
-                                        task_list=a_task_list,
-                                        forward_common_files=[],
-                                        backward_common_files=[]
-                                        )
-                try:
-                    submission.run_submission()
-                except Exception as e:
-                    with open('opt_error.log', 'a') as f:
-                        f.write(str(e) + '\n' + str(task_list) + '\n')
-
-    def opt_twice(self):
-        cmd_list = self.cmd_list.copy()
-        if self.cage.add_num % 2 == 1:
-            cmd_list.append('--uhf 1')
-        cmd_list.extend([f'--cycles {self.init_cycle}'])
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, cmd_list=cmd_list)
-        del cmd_list[-1]
-
-        self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
-
-        if os.stat('wrong_paths').st_size != 0:
-            if self.deal_wrong_mode == 'complete':
-                # re-opt wrong_path with small sub batch size
-                self.deal_wrong_complete()
-            elif self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
-            elif self.deal_wrong_mode == 'tough':
-                return 2
-
-        # if all jobs are failed or wronged, stop opt
-        if os.stat('yes_paths').st_size == 0:
-            self.combine_log()
-            if os.stat('init_yes_paths').st_size == 0:
-                return 0
-            else:
-                return 1
-        else:
-            self.set_final_folders()
-
-            with open('yes_paths', 'r') as f:
-                for a_log in f.readlines():
-                    src = os.path.join(os.path.split(a_log)[0], 'xtbopt.xyz')
-                    dst = os.path.join(self.path_raw_final, os.path.basename(os.path.split(a_log)[0]) + '.xyz')
-                    os.symlink(src=src, dst=dst)
-
-            cmd_list.extend([f'--cycles {self.final_cycle}'])
-            self.run_a_batch(path_source=self.path_raw_final, path_destination=self.path_opt_final, cmd_list=cmd_list)
-            # can deal with wrong here, but not meaningful.
-            self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_final, is_init=False)
-            self.combine_log()
-            if os.stat('yes_paths').st_size == 0 and os.stat('init_yes_paths').st_size == 0:
-                return 0
-            else:
-                return 1
-
-    def opt_once(self):
-        cmd_list = self.cmd_list.copy()
-        if self.cage.add_num % 2 == 1:
-            cmd_list.append('--uhf 1')
-        cmd_list.extend([f'--cycles {self.init_cycle}'])
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, cmd_list=cmd_list)
-
-        self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
-
-        if os.stat('wrong_paths').st_size != 0:
-            if self.deal_wrong_mode == 'complete':
-                # re-opt wrong_path with small sub batch size
-                self.deal_wrong_complete()
-            elif self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
-            elif self.deal_wrong_mode == 'tough':
-                return 2
-
-
-        # if all jobs are failed or wronged, stop opt
-        if (os.stat('yes_paths').st_size != 0) or (os.stat('init_yes_paths').st_size != 0):
-            return 1
-        else:
-            return 0
-
-    def combine_log(self):
+    def unpack(self):
         cwd_ = os.getcwd()
-        os.makedirs(name='combined_log', exist_ok=True)
-        if os.path.exists('opt_final'):
-            for an_init in os.listdir(f'opt_{self.init_cycle}'):
-                if an_init not in os.listdir('opt_final'):
-                    os.symlink(
-                        src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
-                        dst=os.path.join('combined_log', f'{an_init}.log')
-                    )
-                else:
-                    init_path = os.path.join('combined_log', f'{an_init}.log')
-                    shutil.copy(
-                        src=os.path.join(f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
-                        dst=init_path
-                    )
-                    final_path = os.path.join('opt_final', an_init, 'xtbopt.log')
-
-                    with open(init_path, 'a') as init_file, open(final_path, 'r') as final_file:
-                        atom_num = int(final_file.readline().strip())
-                        for idx, a_line in enumerate(final_file.readlines()):
-                            if idx < atom_num + 1:
-                                continue
-                            else:
-                                init_file.write(a_line)
-
-        else:
-            for an_init in os.listdir(f'opt_{self.init_cycle}'):
-                os.symlink(
-                    src=os.path.join(cwd_, f'opt_{self.init_cycle}', an_init, 'xtbopt.log'),
-                    dst=os.path.join('combined_log', f'{an_init}.log')
-                )
-
-
-    def deal_wrong_complete(self):
-        def _wrong_unit():
-            os.makedirs(path_wrong_opt, exist_ok=True)
-            with open('wrong_paths', 'r') as f:
-                for a_wrong in f.readlines():
-                    a_wrong = a_wrong.rstrip()
-                    shutil.copy(src=a_wrong, dst=os.path.join(path_wrong_opt, os.path.split(a_wrong)[1]))
-            self.run_a_batch(path_source=path_wrong_opt, path_destination=self.path_opt_init)
-            shutil.rmtree(path_wrong_opt)
-            self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True,
-                               init_cycle=self.init_cycle)
-
-        # here is the situation of initial.
-        path_wrong_opt = f'wrong_{self.init_cycle}'
-        old_para = [self.resrc_para['group_size'], self.sub_batch_size]
-        for self.resrc_para['group_size'], self.sub_batch_size in [[3, 15], [2, 8], [1, 4], [1, 2], [1, 1]]:
-            _wrong_unit()
-        self.resrc_para['group_size'], self.sub_batch_size = old_para
-
-
+        self.prep_unpack()
+        for a_job in os.listdir(self.path_cooking):
+            os.chdir(os.path.join(self.path_cooking, a_job))
+            self.names.append(a_job)
+            if not os.path.exists(r'xtbopt.xyz'):
+                self.status_codes.append(-2)
+                os.chdir(cwd_)
+                continue
+            self.status_codes.append(0)
+            self.passed_names.append(a_job)
+            new_path = os.path.join(self.path_cooked, a_job + '.xyz')
+            shutil.copy(src='xtbopt.xyz', dst=new_path)
+            with open(r'xtbopt.xyz', 'r') as f:
+                _ = f.readline()
+                e_line = f.readline()
+                energy = float(e_line.split()[1]) * Hartree
+            with open(r'xtbopt.log', "r") as file:
+                lines = file.readlines()
+                natoms = int(lines[0])
+                nimages = len(lines) // (natoms + 2)
+            self.e_list.append(energy)
+            self.nimages_list.append(nimages)
+            self.path_list.append(new_path)
+            os.chdir(cwd_)
+        self.post_unpack()
 
 
 class ASE_Optimizer(Optimizer):
-    def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
-        super(ASE_Optimizer, self).__init__(opt_para=opt_para, checker=checker, cage=cage)
-        if 'pll_para' in opt_para.keys():
-            if self.is_Opt_Twice:
-                self.pll_unit_init = opt_para['pll_para']['pll_unit_init']
-                self.pll_unit_final = opt_para['pll_para']['pll_unit_final']
-            else:
-                self.pll_unit_file = opt_para['pll_para']['pll_unit_file']
-            self.num_worker = opt_para['pll_para']['num_worker']
-            self.cpu_per_worker = opt_para['pll_para']['cpu_per_worker']
-            self.base_node = opt_para['pll_para']['base_node']
-            self.is_pll = True
-        else:
-            self.is_pll = False
-        self.calc = opt_para['calculator']
-        self.fmax = opt_para['fmax']
-        self.ase_optimizer = opt_para['ase_optimizer']
+    def __init__(self, opt_para: dict):
+        super(ASE_Optimizer, self).__init__(opt_para=opt_para)
         self.mode = 'ase'
+        self.ase_para = opt_para['ase_para']
 
-    def run_a_batch(self, path_source: str, path_destination: str, steps: int):
+    def pack(self):
         cwd_ = os.getcwd()
-        path_source = os.path.abspath(path_source)
-        path_destination = os.path.abspath(path_destination)
-        for a_file in os.listdir(path_source):
-            name = a_file.split('.')[0]
-            sub_opt = os.path.join(path_destination, name)
+        self.task_list = []
+        num_raws = len(os.listdir(self.path_raw))
+        num_per_worker = math.ceil(num_raws / self.ase_para['num_pll'])
+        model_path = os.path.abspath(self.ase_para['model_path'])
 
-            # if os.path.exists(sub_opt):
-            #     continue
+        if isinstance(self.ase_para['py_script'], str):
+            py_script = os.path.abspath(self.ase_para['py_script'])
+        else:
+            new_list = []
+            for a_script in self.ase_para['py_script']:
+                new_list.append(os.path.abspath(a_script))
+            py_script = new_list
 
-            os.makedirs(sub_opt, exist_ok=True)
-            path_a_file = os.path.join(path_source, a_file)
-            shutil.copy(path_a_file, os.path.join(sub_opt, a_file))
-            os.chdir(sub_opt)
-            atoms = read(a_file, format='xyz')
-            atoms.calc = self.calc
-            opt = self.ase_optimizer(atoms, logfile='opt.log')
-            opt.run(steps=steps, fmax=self.fmax)
-            write(filename='opt.xyz', images=atoms, format='xyz')
-        os.chdir(cwd_)
-
-    def run_a_batch_parallel(self, path_source: str, raw_num: int):
-        path_source = os.path.abspath(path_source)
-        cwd_ = os.getcwd()
-        num_per_worker = math.ceil(raw_num / self.num_worker)
-        res_list = [None] * self.num_worker
-        path_temp = os.path.join(cwd_, 'temp')
-        os.makedirs(path_temp, exist_ok=True)
-        for i in range(self.num_worker):
-            os.chdir(path_temp)
+        for i in range(self.ase_para['num_pll']):
+            os.chdir(self.path_cooking)
             cursor = i * num_per_worker
             sub_raw = str(i)
             os.makedirs(sub_raw, exist_ok=True)
             os.chdir(sub_raw)
-            pll_file_name = os.path.basename(self.pll_unit_file)
-            shutil.copy(src=self.pll_unit_file, dst=pll_file_name)
+
+            if isinstance(py_script, list):
+                py_script = py_script[i % len(py_script)]
+            else:
+                py_script = py_script
+            pll_file_name = os.path.basename(py_script)
+            shutil.copy(src=py_script, dst=pll_file_name)
+            model_name = os.path.basename(model_path)
+            shutil.copy(src=model_path, dst=model_name)
+
             sub_raw_xyz = 'xyz'
             os.makedirs(sub_raw_xyz, exist_ok=True)
-            for a_raw_xyz in os.listdir(path_source)[cursor: cursor + num_per_worker]:
-                shutil.copy(src=os.path.join(path_source, a_raw_xyz), dst=os.path.join(sub_raw_xyz, a_raw_xyz))
-            start_node = self.base_node + self.cpu_per_worker * i
-            end_node = self.base_node + self.cpu_per_worker * (i + 1) - 1
-            res_list[i] = subprocess.Popen(f'taskset -c {start_node}-{end_node} python {pll_file_name}', shell=True)
-        for a_proc in res_list:
-            a_proc.wait()
-        os.chdir(cwd_)
-        shutil.rmtree(path_temp)
+            for a_raw_xyz in os.listdir(self.path_raw)[cursor: cursor + num_per_worker]:
+                shutil.copy(src=os.path.join(self.path_raw, a_raw_xyz), dst=os.path.join(sub_raw_xyz, a_raw_xyz))
 
-    def opt_once(self):
+            start_node = self.ase_para['base_node'] + self.ase_para['cpu_per_worker'] * i
+            end_node = self.ase_para['base_node'] + self.ase_para['cpu_per_worker'] * (i + 1) - 1
+            real_cmd_list = [f'taskset -c {start_node}-{end_node}', *self.cmd_list, pll_file_name]
+            a_task = Task(command=' '.join(real_cmd_list),
+                          task_work_path=f"{i}/",
+                          forward_files=[sub_raw_xyz, pll_file_name, model_name],
+                          backward_files=self.out_list
+                          )
+            self.task_list.append(a_task)
+            os.chdir(cwd_)
 
-        # if self.cage.add_num <= 6:
-        #     old_workbase = os.path.join(r'/home/mkliu/schnet_opt/paper_4_27/step/C84_11_v2',
-        #                                 f'{str(self.cage.add_num)}addons', 'opt_100')
-        # else:
-        #     old_workbase = os.path.join(r'/home/mkliu/schnet_opt/paper_4_27/step/C84_11',
-        #                                 f'{str(self.cage.add_num)}addons', 'opt_100')
-        #
-        # for a_file in os.listdir(self.path_raw_init):
-        #     folder_name = a_file[:-4]
-        #     if folder_name in os.listdir(old_workbase):
-        #         shutil.copytree(os.path.join(old_workbase, folder_name), dst=os.path.join(self.path_opt_init, folder_name))
+    def unpack(self):
+        cwd_ = os.getcwd()
+        self.prep_unpack()
+        for a_folder in os.listdir(self.path_cooking):
+            os.chdir(os.path.join(self.path_cooking, a_folder, 'cooked'))
+            for a_job in os.listdir('./'):
+                os.chdir(a_job)
+                self.names.append(a_job)
+                if not os.path.exists(r'opt.xyz'):
+                    self.status_codes.append(-2)
+                    os.chdir(cwd_)
+                    continue
 
-        raw_num = len(os.listdir(self.path_raw_init))
-        if self.is_pll and raw_num >= self.num_worker:
-            self.run_a_batch_parallel(path_source=self.path_raw_init, raw_num=raw_num)
-        else:
-            self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, steps=self.init_cycle)
-        self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
-        if os.stat('wrong_paths').st_size != 0:
-            if self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
-            elif self.deal_wrong_mode == 'tough':
-                return 2
-        # if all jobs are failed, stop opt
-        if os.stat('yes_paths').st_size == 0 and os.stat('init_yes_paths').st_size == 0:
-            return 0
-        else:
-            return 1
+                self.status_codes.append(0)
+                self.passed_names.append(a_job)
+                new_path = os.path.join(self.path_cooked, a_job + '.xyz')
+                shutil.copy(src='opt.xyz', dst=new_path)
 
-    def opt_twice(self):
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, steps=self.init_cycle)
-        self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
-        if os.stat('wrong_paths').st_size != 0:
-            if self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
-            elif self.deal_wrong_mode == 'tough':
-                return 2
-        # if all jobs are failed or wronged, stop opt
-        if os.stat('yes_paths').st_size == 0:
-            if os.stat('init_yes_paths').st_size == 0:
-                return 0
-            else:
-                return 1
-        else:
-            self.set_final_folders()
+                self.path_list.append(new_path)
+                with open(r'opt.log', 'r') as xyz_f:
+                    lines = xyz_f.readlines()
+                    energy_line = lines[-1]
+                    energy = float(energy_line.split()[-2].split('*')[0]) * Hartree
+                    nimages = len(lines) - 2
 
-            with open('yes_paths', 'r') as f:
-                for a_log in f.readlines():
-                    src = os.path.join(os.path.split(a_log)[0], 'opt.xyz')
-                    dst = os.path.join(self.path_raw_final, os.path.basename(os.path.split(a_log)[0]) + '.xyz')
-                    os.symlink(src=src, dst=dst)
-
-            self.run_a_batch(path_source=self.path_raw_final, path_destination=self.path_opt_final, steps=self.final_cycle)
-            # can deal with wrong here, but not meaningful.
-            self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_final, is_init=False)
-            if os.stat('yes_paths').st_size == 0 and os.stat('init_yes_paths').st_size == 0:
-                return 0
-            else:
-                return 1
+                self.e_list.append(energy)
+                self.nimages_list.append(nimages)
+                os.chdir('./..')
+            os.chdir(cwd_)
+        self.post_unpack()
 
 
 class Gaussian_Optimizer(Optimizer):
-    def __init__(self, opt_para: dict, checker: Checker, cage: Cage):
-        super(Gaussian_Optimizer, self).__init__(opt_para=opt_para, checker=checker, cage=cage)
-        self.gau_path = opt_para['gau_path']
-        self.cmd_list = [self.gau_path]
-        self.out_list = opt_para['out_list']
-        self.resrc_para = opt_para['resrc_para']
-        self.mach_para = opt_para['mach_para']
-        self.sub_batch_size = opt_para['sub_batch_size']
+    def __init__(self, opt_para: dict):
+        super(Gaussian_Optimizer, self).__init__(opt_para=opt_para)
         self.mode = 'gaussian'
-        self.mem = opt_para['mem']
-        self.charge = opt_para['charge']
-        self.job_type = opt_para['job_type']
-        self.mult = None
-        self.method = opt_para['method']
-        self.other_para = opt_para['other_para']
+        self.gau_para = opt_para['gau_para']
 
-    def run_a_batch(self, path_source: str, path_destination: str, cmd_list: list, cycles:int):
-        path_destination = os.path.abspath(path_destination)
-        self.mach = Machine(batch_type=self.mach_para['batch_type'],
-                            context_type=self.mach_para['context_type'],
-                            remote_root=self.mach_para['remote_root'],
-                            remote_profile=self.mach_para['remote_profile'],
-                            local_root=path_destination)
-        self.resrc = Resources(number_node=self.resrc_para['number_node'],
-                               cpu_per_node = self.resrc_para['cpu_per_node'],
-                               gpu_per_node = self.resrc_para['gpu_per_node'],
-                               group_size = self.resrc_para['group_size'],
-                               queue_name = self.resrc_para['queue_name'],
-                               envs = self.resrc_para['envs']
-                               )
-        task_list = []
-        for item in os.listdir(path_source):
+    def pack(self):
+        if self.has_parity:
+            self.simple_chg_parity()
+            if self.is_odd:
+                multi = 1
+            else:
+                multi = 0
+        else:
+            multi = self.gau_para['multi']
+        
+        self.task_list = []
+        self.cmd_list.append('gau.gjf')
+        for item in os.listdir(self.path_raw):
             isomer_name = os.path.splitext(item)[0]
-            os.makedirs(os.path.join(path_destination, isomer_name), exist_ok=True)
-            path_item = os.path.join(path_source, item)
-            atoms = read(path_item)
-            gjf_name = 'gau.gjf'
-            gjf_path = os.path.join(path_destination, isomer_name, gjf_name)
-            with open(gjf_path, 'w') as fd:
-                write_gaussian_in(fd=fd, atoms=atoms, method=f'{self.job_type}(MaxCycles={cycles}) {self.method} {self.other_para}',
-                                  charge=self.charge, mult=self.mult, mem=self.mem, nprocshared=self.resrc_para['cpu_per_node'], chk='gau.chk')
-            cmd_list.append(gjf_name)
-            a_task = Task(command=' '.join(cmd_list),
+            atoms = read(os.path.join(self.path_raw, item))
+            os.makedirs(os.path.join(self.path_cooking, isomer_name), exist_ok=True)
+            with open(file=os.path.join(self.path_cooking, isomer_name, 'gau.gjf'), mode='w') as f:
+                write_gaussian_in(fd=f,
+                                  atoms=atoms,
+                                  properties=[' '],
+                                  method='',
+                                  basis=self.gau_para['cmd_line'],
+                                  nprocshared=str(self.gau_para['cpu_per_worker']),
+                                  mem=self.gau_para['mem'],  # 10GB by default
+                                  mult=multi,
+                                  charge=self.gau_para['charge'],
+                                  chk='gau.chk'
+                                  )
+            a_task = Task(command=' '.join(self.cmd_list),
                           task_work_path=f"{isomer_name}/",
-                          forward_files=[gjf_name],
+                          forward_files=['gau.gjf'],
                           backward_files=self.out_list
                           )
-            task_list.append(a_task)
-            del cmd_list[-1]
+            self.task_list.append(a_task)
 
-        if self.sub_batch_size == None:
-            submission = Submission(work_base=path_destination,
-                                    machine=self.mach,
-                                    resources=self.resrc,
-                                    task_list=task_list,
-                                    forward_common_files=[],
-                                    backward_common_files=[]
-                                    )
-            try:
-                submission.run_submission()
-            except Exception as e:
-                with open('opt_error.log', 'a') as f:
-                    f.write(str(e) + '\n' + str(task_list) + '\n')
+    def unpack(self):
+        cwd_ = os.getcwd()
+        self.prep_unpack()
+        for a_job in os.listdir(self.path_cooking):
+            os.chdir(os.path.join(self.path_cooking, a_job))
+            self.names.append(a_job)
+            if not os.path.exists(r'gau.log'):
+                self.status_codes.append(-2)
+                os.chdir(cwd_)
+                continue
+            else:
+                with open(file='gau.log', mode='r') as fd:
+                    end_line = fd.readlines()[-1]
+                if not end_line.startswith(r' Normal termination'):
+                    self.status_codes.append(-1)
+                    os.chdir(cwd_)
+                    continue
+            self.status_codes.append(0)
+            self.passed_names.append(a_job)
+            traj = read_gaussian_out(
+                fd='gau.log')  # The read_gaussian_out function is slightly changed to get all traj.
 
-        else:
-            num_groups = math.ceil(len(task_list) / self.sub_batch_size)
-            for i in range(num_groups):
-                cursor = i * self.sub_batch_size
-                a_task_list = task_list[cursor:cursor + self.sub_batch_size]
-                submission = Submission(work_base=path_destination,
-                                        machine=self.mach,
-                                        resources=self.resrc,
-                                        task_list=a_task_list,
-                                        forward_common_files=[],
-                                        backward_common_files=[]
-                                        )
-                try:
-                    submission.run_submission()
-                except Exception as e:
-                    with open('opt_error.log', 'a') as f:
-                        f.write(str(e) + '\n' + str(task_list) + '\n')
+            write(filename='gau_traj.log', images=traj, format='xyz')
+            nimages = len(traj)
+
+            last_image = traj[-1]
+            new_path = os.path.join(self.path_cooked, a_job + '.xyz')
+            write(filename=new_path, images=last_image, format='xyz')
+            energy = last_image.get_potential_energy()
+
+            self.e_list.append(energy)
+            self.nimages_list.append(nimages)
+            self.path_list.append(new_path)
+            os.chdir(cwd_)
+        self.post_unpack()
 
 
-    def opt_once(self):
-        if self.cage.add_num % 2 == 1:
-            self.mult = 2
-        else:
-            self.mult = 1
-        self.run_a_batch(path_source=self.path_raw_init, path_destination=self.path_opt_init, cmd_list=self.cmd_list.copy(), cycles=self.init_cycle)
-        self.checker.check(opt_mood=self.mode, opt_root=self.path_opt_init, is_init=True, init_cycle=self.init_cycle)
-        if os.stat('wrong_paths').st_size != 0:
-            if self.deal_wrong_mode == 'report':
-                print(f'Something wrong happened while optimizing isomers in {self.path_raw_init}.')
-                return 0
-            elif self.deal_wrong_mode == 'tough':
-                return 2
+class Multi_Optimizer(Optimizer):
+    def __init__(self, opt_para: list):
+        self.mode = 'multi'
+        self.opt_para = opt_para
 
-        # if all jobs are failed, stop opt
-        if (os.stat('yes_paths').st_size != 0) or (os.stat('init_yes_paths').st_size != 0):
-            return 1
-        else:
-            return 0
+    def opt(self):
+        cwd_multi = os.getcwd()
+        for idx, a_para in enumerate(self.opt_para):
+            a_workbase = f'opt_{idx}'
+            os.makedirs(a_workbase, exist_ok=True)
+            os.chdir(a_workbase)
+            an_optimizer = switch_optimizers(mode=a_para['opt_mode'], para=a_para)
+            an_optimizer.set_folders()
+            if idx == 0:
+                shutil.copytree(src=os.path.join(cwd_multi, 'raw'), dst=an_optimizer.path_raw, dirs_exist_ok=True)
+            else:
+                wht_list_para = a_para['wht_list_para']
+                pre_passed_info = pd.read_pickle(os.path.join(cwd_multi, f'opt_{idx-1}', 'passed_info.pickle'))
+                if 'nimg_th' in wht_list_para.keys():
+                    wht_list_para.update({'nimages': pre_passed_info['nimages']})
+
+                for a_rank in get_low_e_ranks(e_arr=np.array(pre_passed_info['energy']), para=wht_list_para):
+                    a_xyz_path = pre_passed_info['xyz_path'][a_rank]
+                    a_xyz_name = os.path.basename(a_xyz_path)
+                    shutil.copy(src=a_xyz_path, dst=os.path.join(an_optimizer.path_raw, a_xyz_name))
+            status = an_optimizer.opt()
+            if status == -1:
+                return -1
+            os.chdir(cwd_multi)
+        for file in os.listdir(a_workbase):
+            file_path = os.path.join(a_workbase, file)
+            if os.path.isfile(file_path):
+                shutil.copy(src=file_path, dst=file)
+        return 0
+
 
