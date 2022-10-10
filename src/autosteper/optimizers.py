@@ -34,7 +34,7 @@ def switch_optimizers(mode: str, para: Union[list, dict]):
 # -1: All jobs failed.
 # -2: At least one job end wrong.
 
-# Energy should be in unit Hartree
+# Energy should be in unit eV
 
 class Optimizer():
     def __init__(self, opt_para: dict):
@@ -84,6 +84,9 @@ class Optimizer():
             try:
                 submission.run_submission()
             except Exception as e:
+                print(os.getcwd())
+                if os.path.exists('0/xyz/4do2a5oxwe0w.xyz'):
+                    print('11111111111111111')
                 with open(r'./opt_error.log', 'a') as f:
                     f.write(str(e) + '\n' + str(self.task_list) + '\n')
 
@@ -208,6 +211,7 @@ class XTB_Optimizer(Optimizer):
     def __init__(self, opt_para: dict):
         super(XTB_Optimizer, self).__init__(opt_para=opt_para)
         self.mode = 'xtb'
+        self.opted_xyz_name = 'xtbopt.xyz'
 
     def pack(self):
         if self.has_parity:
@@ -236,7 +240,7 @@ class XTB_Optimizer(Optimizer):
         for a_job in os.listdir(self.path_cooking):
             os.chdir(os.path.join(self.path_cooking, a_job))
             self.names.append(a_job)
-            if not os.path.exists(r'xtbopt.xyz'):
+            if not os.path.exists(self.opted_xyz_name):
                 self.status_codes.append(-2)
                 os.chdir(cwd_)
                 continue
@@ -244,7 +248,7 @@ class XTB_Optimizer(Optimizer):
             self.passed_names.append(a_job)
             new_path = os.path.join(self.path_cooked, a_job + '.xyz')
             shutil.copy(src='xtbopt.xyz', dst=new_path)
-            with open(r'xtbopt.xyz', 'r') as f:
+            with open(self.opted_xyz_name, 'r') as f:
                 _ = f.readline()
                 e_line = f.readline()
                 energy = float(e_line.split()[1]) * Hartree
@@ -263,6 +267,7 @@ class ASE_Optimizer(Optimizer):
     def __init__(self, opt_para: dict):
         super(ASE_Optimizer, self).__init__(opt_para=opt_para)
         self.mode = 'ase'
+        self.opted_xyz_name = 'opt.xyz'
         self.ase_para = opt_para['ase_para']
 
     def pack(self):
@@ -280,7 +285,7 @@ class ASE_Optimizer(Optimizer):
                 new_list.append(os.path.abspath(a_script))
             py_script = new_list
 
-        for i in range(self.ase_para['num_pll']):
+        for i in range(min(self.ase_para['num_pll'], num_raws)):
             os.chdir(self.path_cooking)
             cursor = i * num_per_worker
             sub_raw = str(i)
@@ -320,7 +325,7 @@ class ASE_Optimizer(Optimizer):
             for a_job in os.listdir('./'):
                 os.chdir(a_job)
                 self.names.append(a_job)
-                if not os.path.exists(r'opt.xyz'):
+                if not os.path.exists(self.opted_xyz_name):
                     self.status_codes.append(-2)
                     os.chdir(cwd_)
                     continue
@@ -328,7 +333,7 @@ class ASE_Optimizer(Optimizer):
                 self.status_codes.append(0)
                 self.passed_names.append(a_job)
                 new_path = os.path.join(self.path_cooked, a_job + '.xyz')
-                shutil.copy(src='opt.xyz', dst=new_path)
+                shutil.copy(src=self.opted_xyz_name, dst=new_path)
 
                 self.path_list.append(new_path)
                 with open(r'opt.log', 'r') as xyz_f:
@@ -456,5 +461,22 @@ class Multi_Optimizer(Optimizer):
             if os.path.isfile(file_path):
                 shutil.copy(src=file_path, dst=file)
         return 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

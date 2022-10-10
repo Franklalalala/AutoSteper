@@ -56,7 +56,6 @@ para = {
             'rank': 5
         }
     },
-
 }
 
 # raw folder is pre-defined

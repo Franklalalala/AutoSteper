@@ -24,11 +24,6 @@ class AutoSteper():
             self.step = para['run_para']['step']
             self.wht_list_para = para['run_para']['wht_list_para']
 
-        if 'path_para' in para.keys():
-            self.path_parser = Path_Parser(path_para=para['path_para'], step=self.step,
-                                           workbase=para['workbase'], start=self.start,
-                                           q_cage=self.cage, optimizer=self.optimizer)
-
         if 'random_para' in para.keys():
             self.addon_list = para['random_para']['addon_list']
             self.random_num = para['random_para']['random_num']
