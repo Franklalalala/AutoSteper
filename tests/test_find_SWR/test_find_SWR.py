@@ -3,14 +3,13 @@ import os
 from autosteper.parser import find_SWR
 
 
-find_SWR(q_logs=r'F:\AutoSteper\tests\test_find_SWR\query_workbase\disordered_logs',
-         tgt_logs=r'F:\AutoSteper\tests\test_find_SWR\target_workbase\disordered_logs',
-         log_mode='gauss',
-         q_workbase=r'./query_workbase',
-         tgt_workbase=r'./target_workbase',
-         swr_dump_path=r'./SWR_dump',
+find_SWR(q_sorted_root=r'F:\final_paper_data\SWR\workbase\16',
+         tgt_sorted_root=r'F:\final_paper_data\SWR\workbase\11',
+         swr_dump_path=r'F:\AutoSteper\tests\test_find_SWR\new_SWR_dump',
          step=2,
-         is_low_e=True,
-         is_unique=True,
-         file_mid_name='dft')
+         is_unique=False,
+         is_low_e=False)
+
+
+
 

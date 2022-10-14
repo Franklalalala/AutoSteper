@@ -1,4 +1,5 @@
 # To refactor!
+import os
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -270,9 +271,8 @@ def cook_disordered(disordered_root: str, dump_root: str, step: int, log_mode: s
                         top_K=keep_top_k_pathway)
 
 
-def find_SWR(q_logs: str, tgt_logs: str, log_mode: str,
-             q_workbase: str, tgt_workbase: str, swr_dump_path: str,
-             step: int, is_low_e: bool = None, is_unique: bool = None,
+def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
+             step: int, is_low_e: bool = True, is_unique: bool = True,
              group: str = None, cage_size: int = None, file_mid_name: str = None):
     '''
     Find SWR from atoms in q_logs to atoms in tgt_logs.
@@ -284,27 +284,20 @@ def find_SWR(q_logs: str, tgt_logs: str, log_mode: str,
     '''
     rel_file_mid_name = lazy_file_mid_name(file_mid_name)
     swr_dump_path = os.path.abspath(swr_dump_path)
-    tgt_workbase = os.path.abspath(tgt_workbase)
-    q_workbase = os.path.abspath(q_workbase)
-    q_sorted_root = os.path.join(q_workbase, 'sorted')
-    simple_parse_logs(dump_root=q_sorted_root, src_root=q_logs, mode=log_mode,
-                      group=group, cage_size=cage_size, file_mid_name=file_mid_name)
+    os.makedirs(swr_dump_path, exist_ok=True)
+
     q_xyz_root = os.path.join(q_sorted_root, 'xyz')
-    q_cnt_root = os.path.join(q_sorted_root, 'connection')
-    get_connection(xyz_root=q_xyz_root, connection_dump=q_cnt_root, step=step, file_mid_name=file_mid_name)
     q_atoms = read(os.path.join(q_xyz_root, f'0_addons{rel_file_mid_name}1.xyz'))
     q_G = get_G(q_atoms)
+    q_cnt_root = os.path.join(q_sorted_root, 'connection')
 
-    tgt_sorted_root = os.path.join(tgt_workbase, 'sorted')
-    simple_parse_logs(dump_root=tgt_sorted_root, src_root=tgt_logs, mode=log_mode,
-                      group=group, cage_size=cage_size, file_mid_name=file_mid_name)
     tgt_xyz_root = os.path.join(tgt_sorted_root, 'xyz')
-    tgt_cnt_root = os.path.join(tgt_sorted_root, 'connection')
-    get_connection(xyz_root=tgt_xyz_root, connection_dump=tgt_cnt_root, step=step, file_mid_name=file_mid_name)
     tgt_atoms = read(os.path.join(tgt_xyz_root, f'0_addons{rel_file_mid_name}1.xyz'))
     tgt_G = get_G(tgt_atoms)
+    tgt_cnt_root = os.path.join(tgt_sorted_root, 'connection')
 
     swr = map_SWR(q_atoms, tgt_atoms)
+    # swr = [[22,24], [22,24]]
 
     q_swr = swr[0]
     q_swr_adj_nodes = []
@@ -321,46 +314,36 @@ def find_SWR(q_logs: str, tgt_logs: str, log_mode: str,
     dummy_tgt.remove_nodes_from(tgt_swr)
     GM = isomorphism.GraphMatcher(dummy_q, dummy_tgt)
     q_tgt_map = next(GM.match())
-
     chked_q_add = {}
+    add_num_list = []
+    max_rank = 0
     for a_file in os.listdir(q_xyz_root):
-        a_q_atoms = read(os.path.join(q_xyz_root, a_file))
-        _, q_addon_set = strip_extraFullerene(group=group, cage_size=cage_size, atoms=a_q_atoms)
-        ept_nodes = q_swr_adj_nodes_set - q_addon_set
-        if len(q_addon_set) not in chked_q_add.keys():
-            chked_q_add.update({len(q_addon_set): 0})
-        ept_nodes_for_chk = set()
-        for a_node in ept_nodes:
-            ept_nodes_for_chk.add(q_tgt_map[a_node])
-        done_nodes = q_swr_adj_nodes_set - ept_nodes
-        done_nodes_for_chk = set()
-        for a_node in done_nodes:
-            done_nodes_for_chk.add(q_tgt_map[a_node])
+        a_name = os.path.splitext(a_file)[0]
+        a_rank = int(a_name.split('_')[-1])
+        max_rank = max(max_rank, a_rank)
+        an_add_num = int(a_name.split('_')[0])
+        if an_add_num not in chked_q_add.keys():
+            chked_q_add.update({an_add_num: 0})
+    for an_add_num in chked_q_add.keys():
+        for a_rank in range(max_rank):
+            a_file = f'{an_add_num}_addons{rel_file_mid_name}{a_rank+1}.xyz'
+            a_file_path = os.path.join(q_xyz_root, a_file)
+            if not os.path.exists(a_file_path):
+                continue
+            a_q_atoms = read(a_file_path)
+            _, q_addon_set = strip_extraFullerene(group=group, cage_size=cage_size, atoms=a_q_atoms)
+            ept_nodes = q_swr_adj_nodes_set - q_addon_set
 
-        if len(ept_nodes) > 0:
-            a_q_G_for_chk = get_G(a_q_atoms)
-            a_q_G_for_chk.remove_nodes_from(q_swr)
-            if not (is_unique or is_low_e):
-                for a_tgt_file in os.listdir(tgt_xyz_root):
-                    tgt_add_num = int(a_tgt_file.split('_')[0])
-                    if tgt_add_num == len(q_addon_set) + step:
-                        a_tgt_atoms = read(os.path.join(tgt_xyz_root, a_tgt_file))
-                        _, tgt_addon_set = strip_extraFullerene(group=group, cage_size=cage_size, atoms=a_tgt_atoms)
-                        if len(done_nodes_for_chk - tgt_addon_set) == 0 and \
-                                len(ept_nodes_for_chk - tgt_addon_set) < len(ept_nodes_for_chk):
-                            a_tgt_G_for_chk = get_G(a_tgt_atoms)
-                            a_GM = isomorphism.GraphMatcher(a_tgt_G_for_chk, a_q_G_for_chk)
-                            if a_GM.subgraph_is_isomorphic():
-                                os.chdir(swr_dump_path)
-                                os.makedirs(
-                                    f'{len(q_addon_set)}_to_{len(tgt_addon_set)}_swr_{chked_q_add[len(q_addon_set)] + 1}',
-                                    exist_ok=True)
-                                os.chdir(
-                                    f'{len(q_addon_set)}_to_{len(tgt_addon_set)}_swr_{chked_q_add[len(q_addon_set)] + 1}')
-                                chked_q_add[len(q_addon_set)] += 1
-                                write(filename='q_atoms.xyz', images=a_q_atoms, format='xyz')
-                                write(filename='tgt_atoms.xyz', images=a_tgt_atoms, format='xyz')
-            else:
+            ept_nodes_for_chk = set()
+            for a_node in ept_nodes:
+                ept_nodes_for_chk.add(q_tgt_map[a_node])
+            done_nodes = q_swr_adj_nodes_set - ept_nodes
+            done_nodes_for_chk = set()
+            for a_node in done_nodes:
+                done_nodes_for_chk.add(q_tgt_map[a_node])
+            if len(ept_nodes) > 0:
+                a_q_G_for_chk = get_G(a_q_atoms)
+                a_q_G_for_chk.remove_nodes_from(q_swr)
                 tgt_atoms_list = []
                 rank_list = []
                 for a_tgt_file in os.listdir(tgt_xyz_root):
@@ -382,21 +365,27 @@ def find_SWR(q_logs: str, tgt_logs: str, log_mode: str,
                         tgt_e = tgt_info[len(q_addon_set) + step][sorted(rank_list)[0]]
                         cnt = np.load(os.path.join(q_cnt_root, a_file[:-4] + '.npy'))
                         new_q_info = []
-                        for idx, a_q_e in enumerate(q_info[len(q_addon_set) + step]):
+                        for idx, a_q_e in enumerate(q_info[len(q_addon_set) + step].dropna()):
                             if not a_q_e == None:
                                 if cnt[idx] == 1:
                                     new_q_info.append(a_q_e)
                         if len(new_q_info) != 0:
                             if tgt_e > min(new_q_info):
                                 continue
+                    ###################################################
+                    # dump
+                    rank_list = sorted(rank_list)
                     os.chdir(swr_dump_path)
                     os.makedirs(f'{len(q_addon_set)}_to_{len(tgt_addon_set)}_swr_{chked_q_add[len(q_addon_set)] + 1}',
                                 exist_ok=True)
                     os.chdir(f'{len(q_addon_set)}_to_{len(tgt_addon_set)}_swr_{chked_q_add[len(q_addon_set)] + 1}')
                     chked_q_add[len(q_addon_set)] += 1
-                    rank_atoms_map = dict(zip(rank_list, tgt_atoms_list))
-                    write(filename='q_atoms.xyz', images=a_q_atoms, format='xyz')
-                    write(filename='tgt_atoms.xyz', images=rank_atoms_map[sorted(rank_list)[0]], format='xyz')
+                    for idx, a_rank in enumerate(rank_list):
+                        if is_unique and idx > 0:
+                            break
+                        rank_atoms_map = dict(zip(rank_list, tgt_atoms_list))
+                        write(filename='q_atoms.xyz', images=a_q_atoms, format='xyz')
+                        write(filename=f'tgt_atoms_rank_{idx + 1}.xyz', images=rank_atoms_map[a_rank], format='xyz')
 
 
 eV2kjmol = 1 / (kJ / mol)

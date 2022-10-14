@@ -178,6 +178,7 @@ def get_low_e_ranks(e_arr: np.ndarray, para: dict, is_reverse: bool = False):
 
 
 def get_low_e_xyz(dump_folder: str, add_num: int, old_workbase: str, cutoff_para: dict):
+    dump_folder = os.path.abspath(dump_folder)
     cwd_ = os.getcwd()
     addon_path = str(add_num) + 'addons'
     os.chdir(old_workbase)
@@ -365,13 +366,13 @@ def simple_dump_pathway(pathway_info_path: str, dump_root: str, src_xyz_root: st
 def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_path: str, file_mid_name: str = None):
     cwd_ = os.getcwd()
     def _get_path_way_unit(idx: int, name_list: list, rel_e_list: list):
-        an_add = add_num_list[idx]
         if idx == -1:
             all_name_list.append(name_list)
             all_rel_e_list.append(rel_e_list)
             all_e_area_list.append(sum(rel_e_list))
             return
         else:
+            an_add = add_num_list[idx]
             a_min_e = min_e_list[idx]
             for a_rank in range(max_rank):
                 file_name = f'{an_add}_addons{file_mid_name}{a_rank + 1}.xyz'
@@ -385,7 +386,7 @@ def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_p
                     name_list = [file_name, *name_list]
                     rel = e_info[an_add][a_rank] - a_min_e
                     rel_e_list = [rel, *rel_e_list]
-                    _get_path_way_unit(idx=idx - 1, name_list=name_list, rel_e_list=rel_e_list)
+                    _get_path_way_unit(idx=idx - 1, name_list=name_list.copy(), rel_e_list=rel_e_list.copy())
                     del rel_e_list[0]
                     del name_list[0]
 
@@ -397,16 +398,17 @@ def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_p
     add_num_list = sorted(list(e_info.columns))
     min_e_list = []
     max_rank = 0
-    for an_add in add_num_list:
-        min_e_list.append(e_info[an_add][0])
-        max_rank = max(max_rank, len(e_info[an_add]))
+    for a_max_add in add_num_list:
+        min_e_list.append(e_info[a_max_add][0])
+        max_rank = max(max_rank, len(e_info[a_max_add]))
     all_name_list = []
     all_rel_e_list = []
     all_e_area_list = []
-    for idx, a_max_add_e in enumerate(e_info[an_add]):
+    for idx, a_max_add_e in enumerate(e_info[a_max_add]):
         a_max_rel_e = a_max_add_e - min_e_list[-1]
-        a_max_name = f'{an_add}_addons{file_mid_name}{idx + 1}.xyz'
+        a_max_name = f'{a_max_add}_addons{file_mid_name}{idx + 1}.xyz'
         _get_path_way_unit(idx=len(add_num_list) - 2, name_list=[a_max_name], rel_e_list=[a_max_rel_e])
+    all_e_area_list = np.array(all_e_area_list) - min(all_e_area_list)
     info = pd.DataFrame({'name': all_name_list, 'rel_e': all_rel_e_list, 'e_area': all_e_area_list})
     info = info.sort_values(by='e_area')
     info.index = sorted(info.index)
