@@ -3,9 +3,9 @@ import os
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 import seaborn as sns
 from ase import Atoms
-from ase.units import kJ, mol
 from autosteper.cage import Cage, seq2name
 from autosteper.optimizers import *
 from autosteper.tools import get_low_e_ranks, strip_extraFullerene, get_G, simple_dump_pathway, get_pathway_info, \
@@ -388,9 +388,6 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
                         write(filename=f'tgt_atoms_rank_{idx + 1}.xyz', images=rank_atoms_map[a_rank], format='xyz')
 
 
-eV2kjmol = 1 / (kJ / mol)
-
-
 class Path_Parser():
     def __init__(self, path_para: dict, dump_root: str,
                  q_cage: Cage, refiner_para: dict = None):
@@ -623,7 +620,7 @@ class Path_Parser():
         rel_e_array = np.ones_like(e_array)
         for i in range(len(self.add_num_list) + 1):
             rel_e_array[:, i] = e_array[:, i] - min(e_array[:, i])
-        rel_e_array = rel_e_array * eV2kjmol
+        rel_e_array = rel_e_array
 
         # Dump path related xyz file
         for path_rank in range(min(self.q_path_rank, len(e_lists))):
@@ -649,10 +646,13 @@ class Path_Parser():
         cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
         rel_e_df = pd.DataFrame(rel_e_array)
         rel_e_df.columns = [0, *self.add_num_list]
+        rel_e_df.index = np.array(rel_e_df.index) + 1
+        rel_pathway = np.array(rel_e_df.sum(axis=1))
+        rel_e_df['Pathway'] = rel_pathway - rel_pathway[0]
         sns.heatmap(rel_e_df, annot=True, cmap=cmap, linewidths=.5)
-        plt.ylabel('Path rank.')
-        plt.xlabel('Addon number.')
-        plt.title('Path relative energy (kj/mol).')
+        plt.ylabel('Path rank')
+        plt.xlabel('Number of addends')
+        plt.title('Path relative energy (eV)')
         plt.savefig(f'Path_relative_energy.png')
         plt.close(fig=fig_1)
 
@@ -662,7 +662,7 @@ class Path_Parser():
             passed_info = passed_info_list[idx]
             isomer_min = passed_info['energy'][0]
             isomer_rel_e[:, idx + 1] = e_array[:, idx + 1] - isomer_min
-        isomer_rel_e = isomer_rel_e * eV2kjmol
+        isomer_rel_e = isomer_rel_e
         np.save(file=f'Isomer_relative_energy.npy', arr=isomer_rel_e)
         isomer_rel_e = isomer_rel_e[:self.q_path_rank, :]
         # Simple plot
@@ -670,9 +670,10 @@ class Path_Parser():
         cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
         isomer_rel_e_df = pd.DataFrame(isomer_rel_e)
         isomer_rel_e_df.columns = [0, *self.add_num_list]
+        isomer_rel_e_df.index = np.array(isomer_rel_e_df.index) + 1
         sns.heatmap(isomer_rel_e_df, annot=True, cmap=cmap, linewidths=.5)
-        plt.ylabel('Path rank.')
-        plt.xlabel('Addon number.')
-        plt.title('Isomer relative energy (kj/mol).')
+        plt.ylabel('Path rank')
+        plt.xlabel('Number of addends')
+        plt.title('Isomer relative energy (eV)')
         plt.savefig(f'Isomer_relative_energy.png')
         plt.close(fig=fig_2)
