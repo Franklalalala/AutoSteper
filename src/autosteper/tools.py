@@ -356,8 +356,8 @@ def simple_dump_pathway(pathway_info_path: str, dump_root: str, src_xyz_root: st
         for a_name in a_pathway:
             shutil.copy(src=a_name, dst=os.path.join(a_sub_dump, a_name))
         os.chdir(a_sub_dump)
-        for a_file in os.listdir('./').copy():
-            with open('traj.log', 'a') as f_w, open(a_file, 'r') as f_r:
+        for a_name in a_pathway:
+            with open('traj.log', 'a') as f_w, open(a_name, 'r') as f_r:
                 for a_line in f_r.readlines():
                     f_w.write(a_line)
     os.chdir(cwd_)
