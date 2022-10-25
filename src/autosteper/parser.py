@@ -1,9 +1,5 @@
-# To refactor!
-import os
-
 import matplotlib.pyplot as plt
 import networkx as nx
-import numpy as np
 import seaborn as sns
 from ase import Atoms
 from autosteper.cage import Cage, seq2name
@@ -326,7 +322,7 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
             chked_q_add.update({an_add_num: 0})
     for an_add_num in chked_q_add.keys():
         for a_rank in range(max_rank):
-            a_file = f'{an_add_num}_addons{rel_file_mid_name}{a_rank+1}.xyz'
+            a_file = f'{an_add_num}_addons{rel_file_mid_name}{a_rank + 1}.xyz'
             a_file_path = os.path.join(q_xyz_root, a_file)
             if not os.path.exists(a_file_path):
                 continue
@@ -386,6 +382,53 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
                         rank_atoms_map = dict(zip(rank_list, tgt_atoms_list))
                         write(filename='q_atoms.xyz', images=a_q_atoms, format='xyz')
                         write(filename=f'tgt_atoms_rank_{idx + 1}.xyz', images=rank_atoms_map[a_rank], format='xyz')
+
+
+def get_binding_e(sorted_root: str, addends_e: float, cage_e: float, file_mid_name: str = None):
+    cwd_binding = os.getcwd()
+    sorted_root = os.path.abspath(sorted_root)
+    os.chdir(sorted_root)
+    isomer_e_info = pd.read_pickle(os.path.join('info', 'info.pickle'))
+    first_add = isomer_e_info.columns[0]
+    step = first_add
+    max_rank = len(isomer_e_info[first_add])
+    get_connection(xyz_root='./xyz',
+                   connection_dump='./connection',
+                   step=step,
+                   file_mid_name=file_mid_name)
+    bind_e_info = {}
+    a_e_list = []
+    for a_e in isomer_e_info[first_add].dropna():
+        a_e_list.append(a_e - cage_e - addends_e)
+    bind_e_info[first_add] = a_e_list
+    os.chdir('connection')
+    for an_add in isomer_e_info.columns[1:]:
+        a_e_list = []
+        for a_rank, a_e in enumerate(isomer_e_info[an_add].dropna()):
+            rank_list = []
+            prev_add = an_add - step
+            for a_cnt_f in os.listdir('./'):
+                if a_cnt_f.startswith(f'{prev_add}_'):
+                    a_cnt = np.load(a_cnt_f)
+                    if a_cnt[a_rank] == 1:
+                        a_prev_rank = int(os.path.splitext(a_cnt_f)[0].split('_')[-1]) - 1
+                        rank_list.append(a_prev_rank)
+            if len(rank_list) == 0:
+                continue
+            else:
+                lowest_e_rank = sorted(rank_list)[0]
+                a_prev_e = isomer_e_info[prev_add][lowest_e_rank]
+                a_e_list.append(a_e - a_prev_e - addends_e)
+        bind_e_info[an_add] = a_e_list
+    for an_add in isomer_e_info.columns:
+        a_e_list = bind_e_info[an_add]
+        for i in range(max_rank - len(a_e_list)):
+            a_e_list.append(None)
+        isomer_e_info[an_add] = a_e_list
+    os.chdir(sorted_root)
+    os.chdir('info')
+    isomer_e_info.to_pickle('binding_e.pickle')
+    isomer_e_info.to_excel('binding_e.xlsx')
 
 
 class Path_Parser():

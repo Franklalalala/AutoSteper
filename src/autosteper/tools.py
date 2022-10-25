@@ -297,6 +297,8 @@ def get_connection(xyz_root: str, connection_dump: str, step: int, file_mid_name
     """
     Get connection infos for simple_parse_logs function outputs.
     """
+    xyz_root = os.path.abspath(xyz_root)
+    connection_dump = os.path.abspath(connection_dump)
     cwd_ = os.getcwd()
     os.makedirs(connection_dump, exist_ok=True)
     file_mid_name = lazy_file_mid_name(file_mid_name)
