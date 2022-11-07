@@ -1,13 +1,11 @@
-import os
+import warnings
 
-import numpy as np
 from autosteper.cage import Cage
-from autosteper.cage import name2seq, blk_list
+from autosteper.cage import blk_list
 from autosteper.checker import Checker
 from autosteper.generator import Generator
 from autosteper.optimizers import *
 from autosteper.tools import get_low_e_ranks
-import warnings
 
 
 class AutoSteper():
@@ -21,8 +19,17 @@ class AutoSteper():
         if 'run_para' in para.keys():
             self.start = para['run_para']['start']
             self.stop = para['run_para']['stop']
-            self.step = para['run_para']['step']
-            self.wht_list_para = para['run_para']['wht_list_para']
+
+            if 'step' not in para['run_para'].keys():
+                self.step = 1
+            else:
+                self.step = para['run_para']['step']
+
+            if 'wht_list_para' not in para['run_para'].keys():
+                self.wht_list_para = {'mode': 'rank',
+                                      'rank': 5}
+            else:
+                self.wht_list_para = para['run_para']['wht_list_para']
 
         if 'random_para' in para.keys():
             self.addon_list = para['random_para']['addon_list']
@@ -31,7 +38,7 @@ class AutoSteper():
 
         if 'pre_scan_para' in para.keys():
             ps_para = para['pre_scan_para']
-            self.cage.ps_num_list = range(ps_para['start_ps_para'], ps_para['final_ps_para']+1)
+            self.cage.ps_num_list = range(ps_para['start_ps_para'], ps_para['final_ps_para'] + 1)
             self.cage.calc = ps_para['calculator']
             self.ps_cut_para = ps_para['ps_cut_para']
 
@@ -107,8 +114,9 @@ class AutoSteper():
                     os.chdir(self.cage.workbase)
                     shutil.rmtree(self.cage.addon_path)
                     if random_status == -2:
-                        warnings.warn(f'Something wrong happened while optimizing isomers in {self.optimizer.path_cooking}.\n'
-                                      f'The whole batch will be discarded.')
+                        warnings.warn(
+                            f'Something wrong happened while optimizing isomers in {self.optimizer.path_cooking}.\n'
+                            f'The whole batch will be discarded.')
                     elif random_status == -1:
                         warnings.warn(f'All jobs failed while optimizing isomers in {self.optimizer.path_cooking}.\n'
                                       f'The whole batch will be discarded.')
@@ -159,7 +167,7 @@ class AutoSteper():
             a_prev_addon_path = os.path.join(self.cage.workbase, f'{i}addons')
             if os.path.exists(a_prev_addon_path):
                 shutil.rmtree(a_prev_addon_path)
-        self.cage.set_add_num(restart_add_num-1)
+        self.cage.set_add_num(restart_add_num - 1)
         self.prev_passed_info, self.prev_parent_info = \
             os.path.abspath('passed_info.pickle'), os.path.abspath('parent_info.pickle')
         return 0
