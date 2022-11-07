@@ -5,30 +5,24 @@ para = {
     'out_list': ['cooked'],
     'deal_wrong_mode': 'Report',
     'mach_para': {
-        'batch_type': "Torque",
+        'batch_type': "x",
         'context_type': "SSHContext",
-        'remote_root': '/home/mkliu/test_dpdispatcher/',
+        'remote_root': 'xx/',
         'remote_profile': {
-            "hostname": "219.245.39.76",
-            "username": "mkliu",
-            "password": "mkliu123",
+            "hostname": "xx",
+            "username": "xx",
+            "password": "xx",
             "port": 22,
             "timeout": 10
         }
     },
     'resrc_para': {
-        'number_node': 1,
+        'number_node': 6,
         'cpu_per_node': 6,
         'gpu_per_node': 0,
-        'group_size': 1,
+        'group_size': 10,
         'queue_name': "batch",
-        'envs': {
-            "OMP_STACKSIZE": "4G",
-            "OMP_NUM_THREADS": "3,1",
-            "OMP_MAX_ACTIVE_LEVELS": "1",
-            "MKL_NUM_THREADS": "3"
-        },
-        'sub_batch_size': 5
+        'sub_batch_size': 50
     },
     # A parallel distribution file is needed.
     'ase_para': {'model_path': r'last.ckpt',

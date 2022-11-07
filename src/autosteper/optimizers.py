@@ -1,17 +1,16 @@
 import math
 import os
 import shutil
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
 from ase.io import read, write
 from ase.io.gaussian import read_gaussian_out, write_gaussian_in
 from ase.units import Hartree
-from dpdispatcher import Task, Submission, Machine, Resources
-from autosteper.tools import get_low_e_ranks
 from autosteper.cage import name2seq
-
+from autosteper.tools import get_low_e_ranks
+from dpdispatcher import Task, Submission, Machine, Resources
 
 
 def switch_optimizers(mode: str, para: Union[list, dict]):
@@ -23,6 +22,7 @@ def switch_optimizers(mode: str, para: Union[list, dict]):
         return Gaussian_Optimizer(para)
     elif mode == 'multi':
         return Multi_Optimizer(para)
+
 
 # job status code:
 # 0: Normal termination.
@@ -52,7 +52,6 @@ class Optimizer():
             self.has_parity = opt_para['has_parity']
         else:
             self.has_parity = False
-
 
     def set_folders(self):
         self.path_raw = os.path.abspath('raw')
@@ -199,8 +198,8 @@ class Optimizer():
             elif self.deal_wrong_mode == 'Tough':
                 return -2
         if self.checker:
-            self.status_codes = self.checker.check(passed_info_path= 'passed_info.pickle',
-                                                   status_info_path= 'status_info.pickle')
+            self.status_codes = self.checker.check(passed_info_path='passed_info.pickle',
+                                                   status_info_path='status_info.pickle')
         if 0 not in self.status_codes:
             return -1
         else:
@@ -364,7 +363,7 @@ class Gaussian_Optimizer(Optimizer):
                 multi = 0
         else:
             multi = self.gau_para['multi']
-        
+
         self.task_list = []
         self.cmd_list.append('gau.gjf')
         for item in os.listdir(self.path_raw):
@@ -444,7 +443,7 @@ class Multi_Optimizer(Optimizer):
                 shutil.copytree(src=os.path.join(cwd_multi, 'raw'), dst=an_optimizer.path_raw, dirs_exist_ok=True)
             else:
                 wht_list_para = a_para['wht_list_para']
-                pre_passed_info = pd.read_pickle(os.path.join(cwd_multi, f'opt_{idx-1}', 'passed_info.pickle'))
+                pre_passed_info = pd.read_pickle(os.path.join(cwd_multi, f'opt_{idx - 1}', 'passed_info.pickle'))
                 if 'nimg_th' in wht_list_para.keys():
                     wht_list_para.update({'nimages': pre_passed_info['nimages']})
 
@@ -461,22 +460,3 @@ class Multi_Optimizer(Optimizer):
             if os.path.isfile(file_path):
                 shutil.copy(src=file_path, dst=file)
         return 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

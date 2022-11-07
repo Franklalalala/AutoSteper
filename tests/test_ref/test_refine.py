@@ -3,19 +3,23 @@ import os
 from autosteper.parser import refine
 
 mach_para = {
-    'batch_type': "Torque",
-    'context_type': "LocalContext",
-    'remote_root': '/home/mkliu/test_dpdispatcher/',
+    'batch_type': "x",
+    'context_type': "SSHContext",
+    'remote_root': 'xx/',
     'remote_profile': {
-        None
+        "hostname": "xx",
+        "username": "xx",
+        "password": "xx",
+        "port": 22,
+        "timeout": 10
     }
 }
 
 resrc_para = {
-    'number_node': 1,
+    'number_node': 6,
     'cpu_per_node': 6,
     'gpu_per_node': 0,
-    'group_size': 25,
+    'group_size': 10,
     'queue_name': "batch",
     'envs': {
         "OMP_STACKSIZE": "4G",
@@ -23,7 +27,7 @@ resrc_para = {
         "OMP_MAX_ACTIVE_LEVELS": "1",
         "MKL_NUM_THREADS": "3"
     },
-    'sub_batch_size': 200
+    'sub_batch_size': 50
 }
 
 para = {
@@ -32,7 +36,7 @@ para = {
     'step': 1,
     'opt_mode': 'xtb',
     'opt_para': {
-        'cmd_list': [r'/home/mkliu/anaconda3/envs/env001/bin/xtb', '--opt', 'tight', '--json'],
+        'cmd_list': [r'xx/xtb', '--opt', 'tight', '--json'],
         'out_list': ['xtbopt.xyz', 'xtbopt.log', 'xtbout.json'],
         'deal_wrong_mode': 'Report',
         'mach_para': mach_para,
@@ -45,6 +49,6 @@ para = {
     }
 }
 
-refine(old_workbase=r'/home/mkliu/schnet_opt/paper_4_27/10_6/geom',
-       new_workbase=r'/home/mkliu/schnet_opt/paper_4_27/10_6/test_ref/geom',
+refine(old_workbase=r'xx/geom',
+       new_workbase=r'xx/geom',
        ref_para=para)

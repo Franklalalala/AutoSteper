@@ -202,12 +202,14 @@ def get_G(atoms: Atoms):
     assert isinstance(G, object)
     return G
 
+
 def lazy_file_mid_name(file_mid_name: str = None):
     if file_mid_name != None:
         file_mid_name = '_' + file_mid_name + '_'
     else:
         file_mid_name = '_'
     return file_mid_name
+
 
 def simple_parse_logs(dump_root: str, src_root: str, mode: str,
                       group: str = None, cage_size: int = None,
@@ -367,6 +369,7 @@ def simple_dump_pathway(pathway_info_path: str, dump_root: str, src_xyz_root: st
 
 def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_path: str, file_mid_name: str = None):
     cwd_ = os.getcwd()
+
     def _get_path_way_unit(idx: int, name_list: list, rel_e_list: list):
         if idx == -1:
             all_name_list.append(name_list)
@@ -416,6 +419,7 @@ def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_p
     info.index = sorted(info.index)
     info.to_pickle(path=dump_info_path)
     os.chdir(cwd_)
+
 
 def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
     """

@@ -2,13 +2,13 @@ from autosteper import Multi_Optimizer
 
 
 mach_para = {
-        'batch_type': "Torque",
+        'batch_type': "x",
         'context_type': "SSHContext",
-        'remote_root': '/home/mkliu/test_dpdispatcher/',
+        'remote_root': 'xx/',
         'remote_profile': {
-            "hostname": "219.245.39.76",
-            "username": "mkliu",
-            "password": "mkliu123",
+            "hostname": "xx",
+            "username": "xx",
+            "password": "xx",
             "port": 22,
             "timeout": 10
         }
@@ -18,7 +18,7 @@ resrc_para = {
         'number_node': 6,
         'cpu_per_node': 6,
         'gpu_per_node': 0,
-        'group_size': 2,
+        'group_size': 10,
         'queue_name': "batch",
         'envs': {
             "OMP_STACKSIZE": "4G",
@@ -26,12 +26,13 @@ resrc_para = {
             "OMP_MAX_ACTIVE_LEVELS": "1",
             "MKL_NUM_THREADS": "3"
         },
-        'sub_batch_size': 10
+        'sub_batch_size': 50
     }
+
 
 xtb_para_1 = {
     'opt_mode': 'xtb',
-    'cmd_list': [r'/home/mkliu/anaconda3/envs/env001/bin/xtb', '--opt', 'tight', '--json', '--cycles 15'],
+    'cmd_list': [r'xx/xtb', '--opt', 'tight', '--json', '--cycles 15'],
     'out_list': ['xtbopt.xyz', 'xtbopt.log', 'xtbout.json'],
     'deal_wrong_mode': 'Report',
     'mach_para': mach_para,
@@ -60,7 +61,7 @@ gau_para = {
 
 xtb_para_2 = {
     'opt_mode': 'xtb',
-    'cmd_list': [r'/home/mkliu/anaconda3/envs/env001/bin/xtb', '--opt', 'tight', '--json'],
+    'cmd_list': [r'xxx/xtb', '--opt', 'tight', '--json'],
     'out_list': ['xtbopt.xyz', 'xtbopt.log', 'xtbout.json'],
     'deal_wrong_mode': 'Report',
     'mach_para': mach_para,

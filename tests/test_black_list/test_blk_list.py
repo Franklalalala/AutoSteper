@@ -2,33 +2,30 @@ import os
 
 import torch
 from autosteper import AutoSteper
-from torchlightmolnet import Properties
-from torchlightmolnet.caculator import torchCaculator
-from torchlightmolnet.dataset.atomref import refatoms_xTB, get_refatoms
-from torchlightmolnet.lightning.molnet import LightMolNet
+from somenet import calculator
+from somenet import net
 
-model_path = r'/home/mkliu/schnet_opt/paper_4_27/Cl_final.ckpt'
-net = LightMolNet(atomref=get_refatoms(refatoms_xTB)[Properties.energy_U0])
+model_path = r'xx/Cl_final.ckpt'
 state_dict = torch.load(model_path)
 net.load_state_dict(state_dict["state_dict"])
-calculator = torchCaculator(net=net)
+calculator = calculator(net=net)
 
 para = {
     'pristine_path': r'C108.xyz',
     'root': r'./',
     'gen_para': {'group': 'Cl',
                  'geom_mode': 'pre_defined',
-                 'gen_core_path': r"/home/mkliu/nauty/usenauty/bin/cagesearch",
+                 'gen_core_path': r"xx/cagesearch",
                  },
     'opt_mode': 'ase',
     'opt_para': {
-        'cmd_list': [r'/home/mkliu/anaconda3/envs/molnet/bin/python3.8'],
+        'cmd_list': [r'xx/bin/python3.8'],
         'out_list': ['cooked'],
         'deal_wrong_mode': 'Report',
         'mach_para': {
             'batch_type': "Torque",
             'context_type': "LocalContext",
-            'remote_root': '/home/mkliu/test_dpdispatcher/',
+            'remote_root': 'xx/test_dpdispatcher/',
             'remote_profile': None
         },
         'resrc_para': {
@@ -41,8 +38,8 @@ para = {
             'sub_batch_size': 8
         },
         # A parallel distribution file is needed.
-        'ase_para': {'model_path': r'/home/mkliu/anaconda3/envs/molnet/AutoSteper/tests/test_pre_scan/last.ckpt',
-                     'py_script': r'/home/mkliu/anaconda3/envs/molnet/AutoSteper/tests/test_pre_scan/parallel_unit.py',
+        'ase_para': {'model_path': r'xx/last.ckpt',
+                     'py_script': r'xx/parallel_unit.py',
                      'num_pll': 8,
                      'base_node': 0,
                      'cpu_per_worker': 6},

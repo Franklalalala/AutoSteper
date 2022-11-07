@@ -1,12 +1,11 @@
-import networkx as nx
-from fullerenedatapraser.molecular.fullerene import FullereneFamily
-from ase.io import read
 import os
-from ase.atoms import Atoms
+
+import networkx as nx
 import numpy as np
-from ase.units import Hartree, eV
 import pandas as pd
+from ase.io import read
 from autosteper.tools import get_low_e_ranks
+from fullerenedatapraser.molecular.fullerene import FullereneFamily
 
 
 class Cage():
@@ -20,7 +19,7 @@ class Cage():
         self.symbol = self.atoms[0].symbol
         self.centre = self.atoms.get_positions().mean(axis=0)
         self.size = len(self.atoms)
-        self.max_add_36_size = len(to_36_base(int('1'*self.size, 2)))
+        self.max_add_36_size = len(to_36_base(int('1' * self.size, 2)))
         # graph6str
         self._get_graph6str()
         self.blk_list = None
@@ -39,7 +38,7 @@ class Cage():
         self.workbase = os.path.abspath(os.path.join(root, self.name))
         os.makedirs(self.workbase, exist_ok=True)
 
-    def set_add_num(self, add_num: int=None):
+    def set_add_num(self, add_num: int = None):
         self.add_num = add_num
         self.addon_path = os.path.join(self.workbase, f'{self.add_num}addons')
         os.makedirs(name=self.addon_path, exist_ok=True)
@@ -58,7 +57,8 @@ class Cage():
 
 
 def to_36_base(num):
-  return ((num == 0) and "0") or (to_36_base(num // 36).lstrip("0") + "0123456789abcdefghijklmnopqrstuvwxyz"[num % 36])
+    return ((num == 0) and "0") or (
+                to_36_base(num // 36).lstrip("0") + "0123456789abcdefghijklmnopqrstuvwxyz"[num % 36])
 
 
 def name2seq(name: str, cage_size: int):
@@ -96,7 +96,7 @@ def seq2name(seq: str, cage: Cage):
 
 class blk_list():
     def __init__(self, size: int, blk_para: dict = None):
-        self.num_list = range(blk_para['start_clct_num'], blk_para['final_chk_num']+1)
+        self.num_list = range(blk_para['start_clct_num'], blk_para['final_chk_num'] + 1)
         self.clct_unstb = blk_para['clct_unstb']
         self.failed_arr = np.ones(size)
         self.blk_list_arr = np.ones(size)
@@ -144,4 +144,3 @@ class blk_list():
             if not 0 in res_arrs[an_idx]:
                 uncutted_idx_list.append(an_idx)
         return uncutted_idx_list
-

@@ -52,7 +52,7 @@ for a_rank in get_low_e_ranks(e_arr=e_arr, para=para):
 assert a_rank == 4
 ########################################################################################
 
-get_low_e_xyz(old_workbase=r'F:\AutoSteper\tests\test_step\geom',
+get_low_e_xyz(old_workbase=r'xx/AutoSteper/tests/test_step/geom',
               add_num=3,
               dump_folder=r'./dump',
               cutoff_para=para)

@@ -2,18 +2,18 @@ from autosteper import XTB_Optimizer
 
 
 an_optimizer = XTB_Optimizer(opt_para={
-    'cmd_list': [r'/home/mkliu/anaconda3/envs/env001/bin/xtb', '--opt', 'tight', '--cycle 15'],
+    'cmd_list': [r'xx/bin/xtb', '--opt', 'tight', '--cycle 15'],
     'out_list': ['xtbopt.xyz', 'xtbopt.log'],
     'deal_wrong_mode': 'Complete',
 
     'mach_para': {
-        'batch_type': "Torque",
+        'batch_type': "xx",
         'context_type': "SSHContext",
-        'remote_root': '/home/mkliu/test_dpdispatcher',
+        'remote_root': 'xx',
         'remote_profile': {
-            "hostname": "219.245.39.76",
-            "username": "mkliu",
-            "password": "mkliu123",
+            "hostname": "xx",
+            "username": "xx",
+            "password": "xx",
             "port": 22,
             "timeout": 10
         }

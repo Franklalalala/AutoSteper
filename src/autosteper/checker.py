@@ -1,7 +1,6 @@
 import os
 import shutil
 
-from typing import Union
 import numpy as np
 import pandas as pd
 from ase.atoms import Atoms
@@ -11,7 +10,7 @@ from autosteper.cage import name2seq, Cage
 
 
 class Checker():
-    def __init__(self, pst_cage: Cage, group: str, skin: float=0.15):
+    def __init__(self, pst_cage: Cage, group: str, skin: float = 0.15):
         self.skin = 0.15
         self.group = group
         self.pst_cage = pst_cage
@@ -168,7 +167,7 @@ class Checker():
                 status_info[q_name] = job_status
                 failed_status_codes.append(job_status)
                 failed_idxes.append(idx)
-                failed_new_path = os.path.join(failed_folder_path, q_name+'.xyz')
+                failed_new_path = os.path.join(failed_folder_path, q_name + '.xyz')
                 shutil.move(src=a_xyz_path, dst=failed_new_path)
                 failed_job_paths.append(failed_new_path)
 

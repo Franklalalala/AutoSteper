@@ -26,8 +26,11 @@ class AutoSteper():
                 self.step = para['run_para']['step']
 
             if 'wht_list_para' not in para['run_para'].keys():
-                self.wht_list_para = {'mode': 'rank',
-                                      'rank': 5}
+                self.wht_list_para = {
+                    'mode': 'rank_and_value',
+                    'rank': 200,
+                    'value': 1
+                }
             else:
                 self.wht_list_para = para['run_para']['wht_list_para']
 

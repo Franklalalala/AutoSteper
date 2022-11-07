@@ -5,24 +5,24 @@ an_optimizer = Gaussian_Optimizer(opt_para={
     'out_list': ['gau.log', 'gau.chk'],
     'deal_wrong_mode': 'Report',
     'mach_para': {
-        'batch_type': "Torque",
-        'context_type': "LocalContext",
-        'remote_root': '/home/mkliu/test_dpdispatcher/',
-        'remote_profile': None
+        'batch_type': "x",
+        'context_type': "SSHContext",
+        'remote_root': 'xx/',
+        'remote_profile': {
+            "hostname": "xx",
+            "username": "xx",
+            "password": "xx",
+            "port": 22,
+            "timeout": 10
+        }
     },
     'resrc_para': {
-        'number_node': 1,
-        'cpu_per_node': 9,
+        'number_node': 6,
+        'cpu_per_node': 6,
         'gpu_per_node': 0,
-        'group_size': 2,
+        'group_size': 10,
         'queue_name': "batch",
-        'envs': {
-            "OMP_STACKSIZE": "4G",
-            "OMP_NUM_THREADS": "3,1",
-            "OMP_MAX_ACTIVE_LEVELS": "1",
-            "MKL_NUM_THREADS": "3"
-        },
-        'sub_batch_size': 25
+        'sub_batch_size': 50
     },
     'gau_para': {
         'cmd_line': r'opt b3lyp/3-21G',

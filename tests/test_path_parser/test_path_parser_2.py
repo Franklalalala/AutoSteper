@@ -5,19 +5,23 @@ from autosteper.cage import Cage
 from autosteper.parser import Path_Parser
 
 mach_para = {
-    'batch_type': "Torque",
-    'context_type': "LocalContext",
-    'remote_root': '/home/mkliu/test_dpdispatcher/',
+    'batch_type': "x",
+    'context_type': "SSHContext",
+    'remote_root': 'xx/',
     'remote_profile': {
-        None
+        "hostname": "xx",
+        "username": "xx",
+        "password": "xx",
+        "port": 22,
+        "timeout": 10
     }
 }
 
 resrc_para = {
-    'number_node': 1,
+    'number_node': 6,
     'cpu_per_node': 6,
     'gpu_per_node': 0,
-    'group_size': 1,
+    'group_size': 10,
     'queue_name': "batch",
     'envs': {
         "OMP_STACKSIZE": "4G",
@@ -25,11 +29,11 @@ resrc_para = {
         "OMP_MAX_ACTIVE_LEVELS": "1",
         "MKL_NUM_THREADS": "3"
     },
-    'sub_batch_size': 8
+    'sub_batch_size': 50
 }
 
 a_cage = Cage(pristine_path=r'./geom.xyz')
-a_cage.set_workbase(root=r'/home/mkliu/schnet_opt/paper_4_27/10_6')
+a_cage.set_workbase(root=r'xx')
 
 path_para = {
     'is_mix': True,

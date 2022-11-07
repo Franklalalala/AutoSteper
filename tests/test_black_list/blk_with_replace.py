@@ -4,22 +4,19 @@ import time
 import torch
 from ase.optimize import *
 from autosteper.Autosteper import AutoSteper
-from torchlightmolnet import Properties
-from torchlightmolnet.caculator import torchCaculator
-from torchlightmolnet.dataset.atomref import refatoms_xTB, get_refatoms
-from torchlightmolnet.lightning.molnet import LightMolNet
+from somenet import calculator
+from somenet import net
 
-model_path = r'/home/mkliu/schnet_opt/paper_4_27/Cl_final.ckpt'
-net = LightMolNet(atomref=get_refatoms(refatoms_xTB)[Properties.energy_U0])
+model_path = r'xx/Cl_final.ckpt'
 state_dict = torch.load(model_path)
 net.load_state_dict(state_dict["state_dict"])
-calculator = torchCaculator(net=net)
+calculator = calculator(net=net)
 
 para = {
-    'workbase': r'/home/mkliu/schnet_opt/paper_4_27/blk_workbase/0_3_2_500',
-    'pristine_cage': r'/home/mkliu/schnet_opt/paper_4_27/xyz/C106.xyz',
+    'workbase': r'xx',
+    'pristine_cage': r'xx/C106.xyz',
     'gen_para': {
-        'gen_core_path': r"/home/mkliu/nauty/usenauty/bin/cagesearch",
+        'gen_core_path': r"xx/cagesearch",
         'geom_mode': 'pre_defined',
         'group': 'Cl',
         'skin': 0.15
@@ -37,7 +34,7 @@ para = {
             'num_worker': 9,
             'cpu_per_worker': 5,
             'base_node': 5,
-            'pll_unit_file': r'/home/mkliu/schnet_opt/paper_4_27/parallel/parallel_unit.py'
+            'pll_unit_file': r'xx/parallel_unit.py'
         },
     },
     'run_para': {
@@ -67,10 +64,10 @@ auto = AutoSteper(para)
 auto.run()
 
 para = {
-    'workbase': r'/home/mkliu/schnet_opt/paper_4_27/blk_workbase/0_3_1_500',
-    'pristine_cage': r'/home/mkliu/schnet_opt/paper_4_27/xyz/C106.xyz',
+    'workbase': r'xx',
+    'pristine_cage': r'xx/C106.xyz',
     'gen_para': {
-        'gen_core_path': r"/home/mkliu/nauty/usenauty/bin/cagesearch",
+        'gen_core_path': r"xx/cagesearch",
         'geom_mode': 'pre_defined',
         'group': 'Cl',
         'skin': 0.15
@@ -88,7 +85,7 @@ para = {
             'num_worker': 9,
             'cpu_per_worker': 5,
             'base_node': 5,
-            'pll_unit_file': r'/home/mkliu/schnet_opt/paper_4_27/parallel/parallel_unit.py'
+            'pll_unit_file': r'xx/parallel_unit.py'
         },
     },
     'run_para': {

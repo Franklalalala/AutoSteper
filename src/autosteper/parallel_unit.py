@@ -1,15 +1,21 @@
+# This is an example parallel unit to integrate trained NNP with ase to perform geometry optimization tasks.
+
 import os
 import shutil
-import math
+
+
 from ase.io import read, write
 from ase.optimize import FIRE
-from ase.optimize.optimize import Optimizer
-from torchlightmolnet.caculator import torchCaculator
-from torchlightmolnet.lightning.molnet import LightMolNet
-from torchlightmolnet.dataset.atomref import refatoms_xTB, get_refatoms
-from torchlightmolnet import Properties
+
+from somenet import net
+from somenet import calculator
 import torch
 
+
+model_path = r'xx/Cl_final.ckpt'
+state_dict = torch.load(model_path)
+net.load_state_dict(state_dict["state_dict"])
+calculator = calculator(net=net)
 
 
 def run_a_batch(steps: int, fmax: float, path_raw: str, path_opt: str):
@@ -28,12 +34,6 @@ def run_a_batch(steps: int, fmax: float, path_raw: str, path_opt: str):
         write(filename='opt.xyz', images=atoms, format='xyz')
 
 
-
-model_path = r'/home/mkliu/schnet_opt/paper_4_27/Cl_final.ckpt'
-net = LightMolNet(atomref=get_refatoms(refatoms_xTB)[Properties.energy_U0])
-state_dict = torch.load(model_path)
-net.load_state_dict(state_dict["state_dict"])
-calculator = torchCaculator(net=net)
 
 cwd_ = os.getcwd()
 os.makedirs(name=r'cooked', exist_ok=True)
