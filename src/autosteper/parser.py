@@ -710,7 +710,6 @@ class Path_Parser():
         isomer_rel_e = isomer_rel_e[:self.q_path_rank, :]
         # Simple plot
         fig_2 = plt.figure(dpi=400, figsize=(len(self.add_num_list), min(self.q_path_rank, len(e_lists) + 1, 20)))
-        cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
         isomer_rel_e_df = pd.DataFrame(isomer_rel_e)
         isomer_rel_e_df.columns = [0, *self.add_num_list]
         isomer_rel_e_df.index = np.array(isomer_rel_e_df.index) + 1

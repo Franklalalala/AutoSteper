@@ -25,9 +25,11 @@ pip install .
 
 ```
 git clone https://github.com/Franklalalala/usenauty
+cd usenauty
 mkdir build
 cd build
-cmake ../usenauty
+cmake .. -G "Unix Makefiles"
+make
 ```
 
 The absolute path of compiled `cagesearch` file corresponds to the `gen_core_path` button in `generator` module.
