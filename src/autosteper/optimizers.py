@@ -101,10 +101,10 @@ class Optimizer():
                                queue_name=self.resrc_para['queue_name'],
                                envs=self.resrc_para['envs']
                                )
-        if self.resrc_para['sub_batch_size'] == None:
+        if 'sub_batch_size' not in self.resrc_para.keys() or self.resrc_para['sub_batch_size'] == None:
             submission = Submission(work_base=self.path_cooking,
-                                    machine=mach,
-                                    resources=resrc,
+                                    machine=self.mach,
+                                    resources=self.resrc,
                                     task_list=self.task_list,
                                     forward_common_files=[],
                                     backward_common_files=[]

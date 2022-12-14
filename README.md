@@ -32,11 +32,7 @@ cmake .. -G "Unix Makefiles"
 make
 ```
 
-Note: 
-
-The [CXX standard](https://en.wikipedia.org/wiki/C%2B%2B17) is set to be **17**, which means the gcc version need to be 8 or higher, or a higher version of IDE, such as [Visual Studio 2017](https://en.wikipedia.org/wiki/Microsoft_Visual_Studio#2017). 
-
-The cmake version need to be **3.1** or higher.
+Note: The [CXX standard](https://en.wikipedia.org/wiki/C%2B%2B17) is set to be **17**, which means the gcc version need to be 8 or higher, or a higher version of IDE, such as [Visual Studio 2017](https://en.wikipedia.org/wiki/Microsoft_Visual_Studio#2017). The cmake version need to be **3.1** or higher. There are two pre-compiled releases for Windows and Linux platform, respectively.
 
 The absolute path of compiled `cagesearch` file corresponds to the `gen_core_path` button in `generator` module.
 

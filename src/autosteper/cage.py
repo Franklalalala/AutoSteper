@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from ase.io import read
 from autosteper.tools import get_low_e_ranks
-from fullerenedatapraser.molecular.fullerene import FullereneFamily
+from fullerenedataparser.molecular.fullerene import FullereneFamily
 
 
 class Cage():
