@@ -1,0 +1,68 @@
+2022-09-26 21:37:32,565 - INFO : info:check_all_finished: False
+2022-09-26 21:37:32,565 - INFO : remote path: /home/mkliu/test_dpdispatcher/dc5dfab1a8adf543b6acb54b532d99b3370cf34a
+2022-09-26 21:37:33,659 - INFO : job: 046268533190641c16f81d0152a063b7fe4f75bb submit; job_id is 459018.node01
+2022-09-26 21:37:34,206 - INFO : job: 768eb5638ee3ebfb71a1da3961c2b786339813de submit; job_id is 459019.node01
+2022-09-26 21:37:34,737 - INFO : job: 4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 submit; job_id is 459020.node01
+2022-09-26 21:37:35,284 - INFO : job: 15c019f500838c202ef97bdbecaf1127eb0fe444 submit; job_id is 459021.node01
+2022-09-26 21:37:38,143 - INFO : job: 15c019f500838c202ef97bdbecaf1127eb0fe444 459021.node01 finished
+2022-09-26 21:38:08,628 - INFO : job: 046268533190641c16f81d0152a063b7fe4f75bb 459018.node01 finished
+2022-09-26 21:38:09,112 - INFO : job: 768eb5638ee3ebfb71a1da3961c2b786339813de 459019.node01 finished
+2022-09-26 21:39:10,369 - INFO : job: 4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 459020.node01 terminated;fail_cout is 1; resubmitting job
+2022-09-26 21:39:10,916 - INFO : job:4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 re-submit after terminated; new job_id is 459022.node01
+2022-09-26 21:39:11,541 - INFO : job:4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 job_id:459022.node01 after re-submitting; the state now is <JobStatus.running: 3>
+2022-09-26 21:40:42,771 - INFO : job: 4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 459022.node01 terminated;fail_cout is 2; resubmitting job
+2022-09-26 21:40:43,317 - INFO : job:4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 re-submit after terminated; new job_id is 459023.node01
+2022-09-26 21:40:43,942 - INFO : job:4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 job_id:459023.node01 after re-submitting; the state now is <JobStatus.running: 3>
+2022-09-26 21:42:15,185 - INFO : job: 4ca69f02dee68fdfd0703d30460f2fd382c5a1a8 459023.node01 terminated;fail_cout is 3; resubmitting job
+2022-09-26 21:42:15,856 - INFO : info:check_all_finished: False
+2022-09-26 21:42:15,856 - INFO : remote path: /home/mkliu/test_dpdispatcher/53ca228e2c4e20e3162743d3e055552f9b088651
+2022-09-26 21:42:16,950 - INFO : job: f6d4d6d810247aeb7123d8c6154a2cc7dbf791dd submit; job_id is 459024.node01
+2022-09-26 21:42:17,512 - INFO : job: ced83696c0fa0e91db9c427afd9cddf8c8465417 submit; job_id is 459025.node01
+2022-09-26 21:42:18,060 - INFO : job: 180346e8889aa593ba1b0a41a2356b348d8476ab submit; job_id is 459026.node01
+2022-09-26 21:42:50,872 - INFO : job: f6d4d6d810247aeb7123d8c6154a2cc7dbf791dd 459024.node01 finished
+2022-09-26 21:42:51,356 - INFO : job: ced83696c0fa0e91db9c427afd9cddf8c8465417 459025.node01 finished
+2022-09-26 21:43:52,647 - INFO : job: 180346e8889aa593ba1b0a41a2356b348d8476ab 459026.node01 terminated;fail_cout is 1; resubmitting job
+2022-09-26 21:43:53,178 - INFO : job:180346e8889aa593ba1b0a41a2356b348d8476ab re-submit after terminated; new job_id is 459027.node01
+2022-09-26 21:43:53,803 - INFO : job:180346e8889aa593ba1b0a41a2356b348d8476ab job_id:459027.node01 after re-submitting; the state now is <JobStatus.running: 3>
+2022-09-26 21:45:25,056 - INFO : job: 180346e8889aa593ba1b0a41a2356b348d8476ab 459027.node01 terminated;fail_cout is 2; resubmitting job
+2022-09-26 21:45:25,603 - INFO : job:180346e8889aa593ba1b0a41a2356b348d8476ab re-submit after terminated; new job_id is 459028.node01
+2022-09-26 21:45:26,244 - INFO : job:180346e8889aa593ba1b0a41a2356b348d8476ab job_id:459028.node01 after re-submitting; the state now is <JobStatus.running: 3>
+2022-09-26 21:46:57,479 - INFO : job: 180346e8889aa593ba1b0a41a2356b348d8476ab 459028.node01 terminated;fail_cout is 3; resubmitting job
+2022-09-26 21:46:57,588 - INFO : info:check_all_finished: False
+2022-09-26 21:46:57,588 - INFO : remote path: /home/mkliu/test_dpdispatcher/ad166eabb532d08e8dcf3482b07c4bda76a8d18b
+2022-09-26 21:46:58,682 - INFO : job: a6e5ad1d591f1ae70017871da2b566dc5ba03ed4 submit; job_id is 459029.node01
+2022-09-26 21:46:59,229 - INFO : job: 5d851ffb0d560c46ec790aba58b7fc2db16ea4a4 submit; job_id is 459030.node01
+2022-09-26 21:46:59,776 - INFO : job: 4be2c8db37c72b1584a5adab15c37beb8f91c07c submit; job_id is 459031.node01
+2022-09-26 21:47:01,307 - INFO : job: a6e5ad1d591f1ae70017871da2b566dc5ba03ed4 459029.node01 finished
+2022-09-26 21:47:01,776 - INFO : job: 5d851ffb0d560c46ec790aba58b7fc2db16ea4a4 459030.node01 finished
+2022-09-26 21:47:02,275 - INFO : job: 4be2c8db37c72b1584a5adab15c37beb8f91c07c 459031.node01 finished
+2022-09-26 21:47:03,947 - INFO : info:check_all_finished: False
+2022-09-26 21:47:03,947 - INFO : remote path: /home/mkliu/test_dpdispatcher/00ece4952797aeba108efff8e4273618f9a2db0a
+2022-09-26 21:47:05,026 - INFO : job: 30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 submit; job_id is 459032.node01
+2022-09-26 21:48:37,765 - INFO : job: 30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 459032.node01 terminated;fail_cout is 1; resubmitting job
+2022-09-26 21:48:38,312 - INFO : job:30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 re-submit after terminated; new job_id is 459033.node01
+2022-09-26 21:48:38,937 - INFO : job:30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 job_id:459033.node01 after re-submitting; the state now is <JobStatus.running: 3>
+2022-09-26 21:50:10,187 - INFO : job: 30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 459033.node01 terminated;fail_cout is 2; resubmitting job
+2022-09-26 21:50:10,734 - INFO : job:30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 re-submit after terminated; new job_id is 459034.node01
+2022-09-26 21:50:11,359 - INFO : job:30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 job_id:459034.node01 after re-submitting; the state now is <JobStatus.running: 3>
+2022-09-26 21:51:42,640 - INFO : job: 30cc9cf1a7d8172d9b7f65325d41db18caadb0f7 459034.node01 terminated;fail_cout is 3; resubmitting job
+2022-09-26 21:51:42,750 - INFO : info:check_all_finished: False
+2022-09-26 21:51:42,750 - INFO : remote path: /home/mkliu/test_dpdispatcher/b8384c2176090d489197b38aac9424c2a8aa31c7
+2022-09-26 21:51:43,843 - INFO : job: 5927b0bb5c0952becc3dd76c28afa8cd33deb7e9 submit; job_id is 459035.node01
+2022-09-26 21:52:15,781 - INFO : job: 5927b0bb5c0952becc3dd76c28afa8cd33deb7e9 459035.node01 finished
+2022-09-26 21:52:16,828 - INFO : info:check_all_finished: False
+2022-09-26 21:52:16,828 - INFO : remote path: /home/mkliu/test_dpdispatcher/148b130f2cea1702016096ca25173118b35a64d7
+2022-09-26 21:52:17,922 - INFO : job: 7868d6717982b45bc8c9d44fbee173e02f2e8918 submit; job_id is 459036.node01
+2022-09-26 21:52:19,452 - INFO : job: 7868d6717982b45bc8c9d44fbee173e02f2e8918 459036.node01 finished
+2022-09-26 21:52:20,468 - INFO : info:check_all_finished: False
+2022-09-26 21:52:20,468 - INFO : remote path: /home/mkliu/test_dpdispatcher/a01d1954e5f5c6d94a6e953ffd46424558ffa85a
+2022-09-26 21:52:21,562 - INFO : job: 02ed73983f0adb31d20782e8b877582ec9ca6b99 submit; job_id is 459037.node01
+2022-09-26 21:52:23,093 - INFO : job: 02ed73983f0adb31d20782e8b877582ec9ca6b99 459037.node01 finished
+2022-09-26 21:52:24,125 - INFO : info:check_all_finished: False
+2022-09-26 21:52:24,125 - INFO : remote path: /home/mkliu/test_dpdispatcher/f9936befa0d28247fa381fb096c14d0680830a5f
+2022-09-26 21:52:25,218 - INFO : job: d6a66aa6d6bc87817dc041ac26c1c6f68b035205 submit; job_id is 459038.node01
+2022-09-26 21:52:57,172 - INFO : job: d6a66aa6d6bc87817dc041ac26c1c6f68b035205 459038.node01 finished
+2022-09-26 21:52:58,218 - INFO : info:check_all_finished: False
+2022-09-26 21:52:58,218 - INFO : remote path: /home/mkliu/test_dpdispatcher/b81859c532ca91dc19a836e4233a65fd701b4022
+2022-09-26 21:52:59,297 - INFO : job: adea6b375bf438b2a2ebb6961a8e1f1eeecd8859 submit; job_id is 459039.node01
+2022-09-26 21:53:31,265 - INFO : job: adea6b375bf438b2a2ebb6961a8e1f1eeecd8859 459039.node01 finished

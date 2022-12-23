@@ -1,0 +1,576 @@
+Start screen SubStructures in 1addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 34, 9, 48, 17, 20, 53, 22, 25}.
+      In rank:                         1
+      Relative energy is:              0.0eV
+      Name is:                         4do2a5oxwe0w
+
+
+
+############################################################################################
+Start screen SubStructures in 2addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 34, 9, 48, 20, 53, 22, 25}.
+      In rank:                         2
+      Relative energy is:              0.12161957143689506eV
+      Name is:                         4do3ua4l8kqo
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 9, 48, 17, 20, 53, 22, 25}.
+      In rank:                         4
+      Relative energy is:              0.6408886488197822eV
+      Name is:                         6ki3f8jeul1c
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 34, 9, 17, 20, 53, 22, 25}.
+      In rank:                         13
+      Relative energy is:              1.079529182695751eV
+      Name is:                         4do2a5oxwfls
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 9, 48, 17, 20, 53, 22, 25}.
+      In rank:                         15
+      Relative energy is:              1.146058373040887eV
+      Name is:                         4do2a5phvksg
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 34, 48, 17, 20, 53, 22, 25}.
+      In rank:                         16
+      Relative energy is:              1.1647250627597714eV
+      Name is:                         4dz5doywk5c0
+
+
+
+############################################################################################
+Start screen SubStructures in 3addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 17, 20, 53, 22, 25}.
+      In rank:                         6
+      Relative energy is:              0.15905238399955124eV
+      Name is:                         6kt6irtdiccg
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 9, 48, 20, 53, 22, 25}.
+      In rank:                         30
+      Relative energy is:              0.2905962897493737eV
+      Name is:                         4do3ua557ri8
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 48, 17, 20, 53, 22, 25}.
+      In rank:                         38
+      Relative energy is:              0.32657969123602015eV
+      Name is:                         4dz5dozgjc3k
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 34, 48, 20, 53, 22, 25}.
+      In rank:                         42
+      Relative energy is:              0.35966578303623464eV
+      Name is:                         4dz6xtejwc1s
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 9, 48, 17, 20, 53, 25}.
+      In rank:                         46
+      Relative energy is:              0.4583729167384263eV
+      Name is:                         6ki3gzoegc8w
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 9, 48, 17, 20, 22, 25}.
+      In rank:                         51
+      Relative energy is:              0.6134614397683436eV
+      Name is:                         6ki3f8jeul34
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 34, 48, 17, 20, 22, 25}.
+      In rank:                         73
+      Relative energy is:              0.7397601880293223eV
+      Name is:                         4dz5doywk5ds
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {9, 48, 17, 20, 53, 22, 25}.
+      In rank:                         77
+      Relative energy is:              0.7504590291919158eV
+      Name is:                         6ki3f8jytrsw
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 9, 48, 17, 53, 22, 25}.
+      In rank:                         78
+      Relative energy is:              0.7525633213745095eV
+      Name is:                         6ki3m93d9lvk
+
+
+
+############################################################################################
+Start screen SubStructures in 4addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 20, 53, 22, 25}.
+      In rank:                         11
+      Relative energy is:              0.18764637265621786eV
+      Name is:                         6kt82w90uj28
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 9, 48, 20, 22, 25}.
+      In rank:                         25
+      Relative energy is:              0.30885951774325804eV
+      Name is:                         4do3ua557rk0
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 48, 20, 53, 22, 25}.
+      In rank:                         35
+      Relative energy is:              0.4047096418212277eV
+      Name is:                         4dz6xtf3vitc
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 48, 17, 20, 22, 25}.
+      In rank:                         46
+      Relative energy is:              0.5399593653874035eV
+      Name is:                         4dz5dozgjc5c
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 17, 20, 53, 22, 25}.
+      In rank:                         50
+      Relative energy is:              0.5855138130141313eV
+      Name is:                         6kt6irtxhj40
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 17, 20, 22, 25}.
+      In rank:                         60
+      Relative energy is:              0.6453419775061775eV
+      Name is:                         6kt6irtdice8
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {9, 48, 17, 20, 22, 25}.
+      In rank:                         70
+      Relative energy is:              0.694955927565843eV
+      Name is:                         6ki3f8jytruo
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 9, 17, 53, 22, 25}.
+      In rank:                         95
+      Relative energy is:              0.7600426731141852eV
+      Name is:                         6ki3m93d9ngg
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 17, 53, 22, 25}.
+      In rank:                         151
+      Relative energy is:              0.8993960313291609eV
+      Name is:                         6kt6psdbxd6o
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 17, 20, 53, 22}.
+      In rank:                         170
+      Relative energy is:              1.029340775568926eV
+      Name is:                         6kt6izphyk8w
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 34, 20, 53, 22, 25}.
+      In rank:                         188
+      Relative energy is:              1.1810718612728124eV
+      Name is:                         4dz6xtejwdmo
+
+
+
+############################################################################################
+Start screen SubStructures in 5addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 17, 20, 22, 25}.
+      In rank:                         6
+      Relative energy is:              0.11379837276854232eV
+      Name is:                         6kt6irtxhj5s
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 20, 53, 22, 25}.
+      In rank:                         8
+      Relative energy is:              0.14539500611590483eV
+      Name is:                         6kt82w9ktpts
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 20, 53, 25}.
+      In rank:                         31
+      Relative energy is:              0.23855136534712074eV
+      Name is:                         6kt84ne0ga9s
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 17, 53, 22, 25}.
+      In rank:                         49
+      Relative energy is:              0.2709808566614811eV
+      Name is:                         6kt6psdbxerk
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 48, 20, 22, 25}.
+      In rank:                         53
+      Relative energy is:              0.2739454913453301eV
+      Name is:                         4dz6xtf3viv4
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 17, 20, 22}.
+      In rank:                         86
+      Relative energy is:              0.30206930001349974eV
+      Name is:                         6kt6izphykao
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 20, 22, 25}.
+      In rank:                         94
+      Relative energy is:              0.3110365612528767eV
+      Name is:                         6kt82w90uj40
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34, 48, 53, 22, 25}.
+      In rank:                         113
+      Relative energy is:              0.32916736389415746eV
+      Name is:                         6kt89wsz9jwg
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 20, 53, 22, 25}.
+      In rank:                         167
+      Relative energy is:              0.3913720739155906eV
+      Name is:                         4dz6xtf3vke8
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {1, 48, 17, 20, 25}.
+      In rank:                         177
+      Relative energy is:              0.39957613014485105eV
+      Name is:                         4dz5fg4g53cw
+
+
+
+############################################################################################
+Start screen SubStructures in 6addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 34, 53, 22}.
+      In rank:                         7
+      Relative energy is:              0.32796100780433335eV
+      Name is:                         6kt89wsz9lhc
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 25, 20, 22}.
+      In rank:                         24
+      Relative energy is:              0.4073097099471852eV
+      Name is:                         6kt82w9ktpvk
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 25, 20, 53}.
+      In rank:                         76
+      Relative energy is:              0.5060744549418814eV
+      Name is:                         6kt84nekfh1c
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 25, 34, 20}.
+      In rank:                         83
+      Relative energy is:              0.5254441254301128eV
+      Name is:                         6kt84ne0gabk
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 17, 20, 22}.
+      In rank:                         97
+      Relative energy is:              0.5455442717257029eV
+      Name is:                         6kt6izq1xr28
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 20, 53, 22}.
+      In rank:                         194
+      Relative energy is:              1.0174982801790975eV
+      Name is:                         6kt82w9ktreo
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 17, 20, 25}.
+      In rank:                         195
+      Relative energy is:              1.1138922577665653eV
+      Name is:                         6kt6kiyx3adc
+
+
+
+############################################################################################
+Start screen SubStructures in 7addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 53, 22}.
+      In rank:                         14
+      Relative energy is:              0.056592310386804456eV
+      Name is:                         6kt89wtj8s8w
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 17, 20}.
+      In rank:                         24
+      Relative energy is:              0.11879634199976863eV
+      Name is:                         6kt6kqv1ji9s
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 25, 20}.
+      In rank:                         26
+      Relative energy is:              0.12081959219904093eV
+      Name is:                         6kt84nekfh34
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 20, 22}.
+      In rank:                         32
+      Relative energy is:              0.1345508022732247eV
+      Name is:                         6kt82w9ktrgg
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 34, 53}.
+      In rank:                         88
+      Relative energy is:              0.21678038035770442eV
+      Name is:                         6kt8bnxyvcow
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 20, 53}.
+      In rank:                         94
+      Relative energy is:              0.228094125917778eV
+      Name is:                         6kt84nekfim8
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {48, 25, 22}.
+      In rank:                         171
+      Relative energy is:              0.3436280036075914eV
+      Name is:                         6kt89wtj8qps
+
+
+
+############################################################################################
+Start screen SubStructures in 8addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 22}.
+      In rank:                         59
+      Relative energy is:              0.2852837421469303eV
+      Name is:                         6kt89wtj8sao
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 53}.
+      In rank:                         149
+      Relative energy is:              0.4109077096127294eV
+      Name is:                         6kt8bnyiujgg
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 34}.
+      In rank:                         156
+      Relative energy is:              0.43005439394892164eV
+      Name is:                         6kt8bnxyvcqo
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25, 20}.
+      In rank:                         194
+      Relative energy is:              0.9196381700921847eV
+      Name is:                         6kt84nekfio0
+
+
+
+############################################################################################
+Start screen SubStructures in 9addons:
+      A SubStructure has been found:
+      The absent addon sites are:      {22}.
+      In rank:                         13
+      Relative energy is:              0.11147624808108958eV
+      Name is:                         6kt8a4pnp074
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {25}.
+      In rank:                         54
+      Relative energy is:              0.20174715251050657eV
+      Name is:                         6kt8bnyiuji8
+
+
+      A SubStructure has been found:
+      The absent addon sites are:      {34}.
+      In rank:                         55
+      Relative energy is:              0.20254906789341476eV
+      Name is:                         6kt8bvu3bkn4
+
+
+
+############################################################################################
+
+
+Start screen Queried isomer:
+      Queried isomer has been found:
+      In rank:                         3
+      Relative energy is:              0.08170357440030784eV
+      Name is:                         6kt8bvunareo
+
+
+
+############################################################################################
+Start screen SuperStructures in 11addons:
+      A SuperStructure has been found:
+      The new addon sites are:      {41}.
+      In rank:                         57
+      Relative energy is:              0.18352007364501333eV
+      Name is:                         6kt8bvungdog
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {37}.
+      In rank:                         75
+      Relative energy is:              0.20556475102785043eV
+      Name is:                         6kt8bvupsnr4
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {44}.
+      In rank:                         76
+      Relative energy is:              0.21124458170106664eV
+      Name is:                         6kt8bvunbgow
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {38}.
+      In rank:                         77
+      Relative energy is:              0.2124175762237428eV
+      Name is:                         6kt8bvuojpkw
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {40}.
+      In rank:                         81
+      Relative energy is:              0.21705366319201858eV
+      Name is:                         6kt8bvunlzy8
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {36}.
+      In rank:                         85
+      Relative energy is:              0.22023077651374479eV
+      Name is:                         6kt8bvusak3k
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {10}.
+      In rank:                         89
+      Relative energy is:              0.22705262837644113eV
+      Name is:                         6kyrvnhmmn28
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {58}.
+      In rank:                         101
+      Relative energy is:              0.23500444675937615eV
+      Name is:                         6kt8bvunareq
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {57}.
+      In rank:                         115
+      Relative energy is:              0.24924892262333742eV
+      Name is:                         6kt8bvunares
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {50}.
+      In rank:                         117
+      Relative energy is:              0.2498225378240022eV
+      Name is:                         6kt8bvunarsw
+
+
+
+############################################################################################
+Start screen SuperStructures in 12addons:
+      A SuperStructure has been found:
+      The new addon sites are:      {56, 50}.
+      In rank:                         28
+      Relative energy is:              0.17603677625356795eV
+      Name is:                         6kt8bvunart4
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {10, 38}.
+      In rank:                         50
+      Relative energy is:              0.2293881237601454eV
+      Name is:                         6kyrvnhnvl8g
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {58, 36}.
+      In rank:                         58
+      Relative energy is:              0.23735101587044483eV
+      Name is:                         6kt8bvusak3m
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {41, 57}.
+      In rank:                         61
+      Relative energy is:              0.23853850962768774eV
+      Name is:                         6kt8bvungdok
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {40, 37}.
+      In rank:                         73
+      Relative energy is:              0.2668946308785962eV
+      Name is:                         6kt8bvuq3wao
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {50, 47}.
+      In rank:                         124
+      Relative energy is:              0.3342293992591294eV
+      Name is:                         6kt8bvunauyo
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {40, 10}.
+      In rank:                         140
+      Relative energy is:              0.37254521147497144eV
+      Name is:                         6kyrvnhmxvls
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {40, 58}.
+      In rank:                         147
+      Relative energy is:              0.38579247975667386eV
+      Name is:                         6kt8bvunlzya
+
+
+      A SuperStructure has been found:
+      The new addon sites are:      {57, 37}.
+      In rank:                         151
+      Relative energy is:              0.3910069843814199eV
+      Name is:                         6kt8bvupsnr8
+
+
+
+############################################################################################
