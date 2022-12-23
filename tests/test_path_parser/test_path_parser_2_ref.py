@@ -1,6 +1,5 @@
 import os
 
-from autosteper import AutoSteper
 from autosteper.cage import Cage
 from autosteper.parser import Path_Parser
 

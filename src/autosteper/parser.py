@@ -174,7 +174,7 @@ def strict_scatter_relatives(workbase: str, dump_folder: str,
         xyz_paths = passed_info['xyz_path']
         return e_arr, names, xyz_paths
 
-    q_add_set, cage_size, mid_add_num = _prep_relatives(q_atoms=q_atoms, q_seq=q_seq, q_cage=q_cage)
+    q_add_set, cage_size, mid_add_num = _prep_relatives(q_atoms=q_atoms, group=group, q_seq=q_seq, q_cage=q_cage)
     q_G = get_G(q_atoms)
     fig = plt.figure(dpi=400)
     fig_len = 0
