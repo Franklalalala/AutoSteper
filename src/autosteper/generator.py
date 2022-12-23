@@ -31,15 +31,12 @@ class Generator():
         if 'gen_core_path' in gen_para.keys():
             self.gen_core_path = gen_para['gen_core_path']
         self.group = gen_para['group']
-        self.geom_mode = gen_para['geom_mode']
         self.pst_cage = pst_cage
         self.ps_map = dict()
-        if self.geom_mode == 'pre_defined':
+        if 'geom_mode' in gen_para.keys() and gen_para['geom_mode'] == 'pre_defined':
             self.geom_para = pre_def_geom_para
-            self.skin = 0.15
         else:
             self.geom_para = gen_para['geom_para']
-            self.skin = gen_para['geom_para']['skin']
 
     def gen_seq(self, mode: str, gen_out_path: str, prev_seq: str = None, random_num: int = None):
         commandline = f'{self.gen_core_path} --graph6str \"{self.pst_cage.graph6str}\" --addnum \"{self.pst_cage.add_num}\" -o \"{gen_out_path}\" -m \"{mode}\" '
