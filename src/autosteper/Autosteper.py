@@ -19,6 +19,8 @@ class AutoSteper():
         if 'run_para' in para.keys():
             self.start = para['run_para']['start']
             self.stop = para['run_para']['stop']
+            if self.stop == None:
+                self.stop = self.cage.size
 
             if 'step' not in para['run_para'].keys():
                 self.step = 1
@@ -112,25 +114,27 @@ class AutoSteper():
                                      dump_folder=self.optimizer.path_raw,
                                      dyn_cage=self.cage,
                                      prev_xyz_path=self.cage.pristine_path)
+                self.optimizer.checker = None
                 random_status = self.optimizer.opt()
-                if random_status != 0:
-                    os.chdir(self.cage.workbase)
-                    shutil.rmtree(self.cage.addon_path)
-                    if random_status == -2:
-                        warnings.warn(
-                            f'Something wrong happened while optimizing isomers in {self.optimizer.path_cooking}.\n'
-                            f'The whole batch will be discarded.')
-                    elif random_status == -1:
-                        warnings.warn(f'All jobs failed while optimizing isomers in {self.optimizer.path_cooking}.\n'
-                                      f'The whole batch will be discarded.')
-                else:
-                    break
-                if opt_times == self.try_times - 1:
-                    print(f'Random opt procedure has performed {self.try_times} times, '
-                          f'still get wrong or failed status. It\'s been terminated, please check this system.')
-                    break
-                else:
-                    opt_times = opt_times + 1
+                break
+                # if random_status != 0:
+                #     os.chdir(self.cage.workbase)
+                #     shutil.rmtree(self.cage.addon_path)
+                #     if random_status == -2:
+                #         warnings.warn(
+                #             f'Something wrong happened while optimizing isomers in {self.optimizer.path_cooking}.\n'
+                #             f'The whole batch will be discarded.')
+                #     elif random_status == -1:
+                #         warnings.warn(f'All jobs failed while optimizing isomers in {self.optimizer.path_cooking}.\n'
+                #                       f'The whole batch will be discarded.')
+                # else:
+                #     break
+                # if opt_times == self.try_times - 1:
+                #     print(f'Random opt procedure has performed {self.try_times} times, '
+                #           f'still get wrong or failed status. It\'s been terminated, please check this system.')
+                #     break
+                # else:
+                #     opt_times = opt_times + 1
 
     def _first_step(self):
         self.cage.set_add_num(self.start)
@@ -166,7 +170,7 @@ class AutoSteper():
             return 0
 
     def restart_first_step(self, restart_add_num):
-        for i in range(restart_add_num, self.stop + 1):
+        for i in range(restart_add_num, self.stop + self.step, self.step):
             a_prev_addon_path = os.path.join(self.cage.workbase, f'{i}addons')
             if os.path.exists(a_prev_addon_path):
                 shutil.rmtree(a_prev_addon_path)
