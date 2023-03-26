@@ -80,7 +80,15 @@ class Optimizer():
         run_cwd_ = os.getcwd()
 
         def _run_unit():
-            submission.run_submission()
+            try:
+                submission.run_submission()
+            except Exception as e:
+                print(os.getcwd())
+                if os.path.exists('0/xyz/4do2a5oxwe0w.xyz'):
+                    print('11111111111111111')
+                with open(r'./opt_error.log', 'a') as f:
+                    f.write(str(e) + '\n' + str(self.task_list) + '\n')
+
         self.mach = Machine(batch_type=self.mach_para['batch_type'],
                             context_type=self.mach_para['context_type'],
                             remote_root=self.mach_para['remote_root'],
@@ -98,6 +106,8 @@ class Optimizer():
                                     machine=self.mach,
                                     resources=self.resrc,
                                     task_list=self.task_list,
+                                    forward_common_files=[],
+                                    backward_common_files=[]
                                     )
             _run_unit()
         else:
