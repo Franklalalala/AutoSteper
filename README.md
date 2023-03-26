@@ -5,7 +5,7 @@ A detailed description could be found in the article: Exploring exohedral functi
 
 <center>Overview of the Stepwise model.</center>
 
-Demonstration of core functions could be found in `./tests`. (Some test files are squeezed to minimize the project size. This issue will be addressed very soon)
+Demonstration of core functions could be found in `./tests`.
 
 Documentation could be found in `./doc`.
 

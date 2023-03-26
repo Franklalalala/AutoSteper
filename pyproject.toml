@@ -12,7 +12,7 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha"
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.8"
 dependencies = [
 	"importlib-metadata",
 	"pytest-shutil",

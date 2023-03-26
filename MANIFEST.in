@@ -1,6 +1,6 @@
 prune tests
-recursive-include doc
-recursive-include src
+recursive-include doc *
+recursive-include src *
 include README.md
 include CHANGELOG.rst
 include VERSION
