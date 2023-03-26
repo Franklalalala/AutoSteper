@@ -1,9 +1,8 @@
 [project]
 name = "AutoSteper"
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 description = "Automated Stepwise Addition Procedure for Extrafullerene."
 authors = [{name = "franklalalala", email = "1660810667@qq.com"}]
-readme = "README.md"
 license = {file = "LICENSE.txt"}
 classifiers = [
     "Programming Language :: Python",
