@@ -26,9 +26,8 @@ dependencies = [
 	"dpdispatcher", 
 ]
 
-[tool.setuptools.packages.find]
-include = ["src"]
-exclude = ["doc*", "tests*"]
+[tool.setuptools]
+packages = ["autosteper"]
 
 [tool.setuptools.dynamic]
 version = {file = ["VERSION"]}
