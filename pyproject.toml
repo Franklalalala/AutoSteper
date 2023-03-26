@@ -1,7 +1,7 @@
 [project]
 name = "AutoSteper"
 dynamic = ["version", "readme"]
-readme = "README.md"
+readme = {file = "README.md"}
 description = "Automated Stepwise Addition Procedure for Extrafullerene."
 authors = [{name = "franklalalala", email = "1660810667@qq.com"}]
 license = {file = "LICENSE.txt"}
