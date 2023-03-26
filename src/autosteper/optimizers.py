@@ -449,4 +449,10 @@ class Multi_Optimizer(Optimizer):
             file_path = os.path.join(a_workbase, file)
             if os.path.isfile(file_path):
                 shutil.copy(src=file_path, dst=file)
+        for file in os.listdir('./'):
+            if os.path.isdir(file):
+                if file == 'cooked':
+                    shutil.rmtree(file)
+                if file == 'cooking':
+                    shutil.rmtree(file)
         return 0
