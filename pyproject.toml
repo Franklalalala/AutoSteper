@@ -14,7 +14,6 @@ classifiers = [
 requires-python = ">=3.6"
 dependencies = [
 	"importlib-metadata",
-	"python_version>=3.8",
 	"pytest-shutil",
 	"ase",
 	"numpy",
