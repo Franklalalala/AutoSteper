@@ -46,19 +46,12 @@ To install the main project:
 pip install AutoSteper
 ```
 
-For other reliance:
-
-```
-pip install pytest-shutil, ase, numpy, pandas, networkx, tqdm, matplotlib, seaborn, dpdispatcher
-```
-
 To install from source code:
 
 ```
 git clone https://github.com/Franklalalala/AutoSteper
 cd AutoSteper
 pip install .
-pip install -r requirements.txt
 ```
 
 ## Note

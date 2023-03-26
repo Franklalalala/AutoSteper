@@ -1,9 +1,0 @@
-pytest-shutil
-ase
-numpy
-pandas
-networkx
-tqdm
-matplotlib
-seaborn
-dpdispatcher
