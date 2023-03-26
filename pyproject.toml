@@ -3,8 +3,8 @@ name = "AutoSteper"
 dynamic = ["version"]
 description = "Automated Stepwise Addition Procedure for Extrafullerene."
 authors = [{name = "franklalalala", email = "1660810667@qq.com"}]
-readme = "README.md"
-license = {file = "LICENSE"}
+readme = {file = "README.md"}
+license = {file = "LICENSE.txt"}
 classifiers = [
     "Programming Language :: Python",
     "Intended Audience :: Science/Research",
@@ -14,13 +14,24 @@ classifiers = [
 ]
 requires-python = ">=3.6"
 dependencies = [
-    "importlib-metadata",
+	"importlib-metadata",
+	"python_version>=3.8",
+	"pytest-shutil",
+	"ase",
+	"numpy",
+	"pandas",
+	"networkx",
+	"tqdm",
+	"matplotlib",
+	"seaborn",
+	"dpdispatcher", 
 ]
 [tool.setuptools]
 py-modules = ["src"]
 
 [tool.setuptools.dynamic]
 version = {file = ["VERSION"]}
+readme = {file = ["README.md"]}
 
 [project.urls]
 Source = "https://github.com/franklalalala/AutoSteper"
