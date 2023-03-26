@@ -26,7 +26,7 @@ dependencies = [
 	"dpdispatcher", 
 ]
 [tool.setuptools]
-py-modules = ["src"]
+packages = ["autosteper"]
 
 [tool.setuptools.dynamic]
 version = {file = ["VERSION"]}
