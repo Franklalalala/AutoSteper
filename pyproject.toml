@@ -1,6 +1,6 @@
 [project]
 name = "AutoSteper"
-dynamic = ["version", "readme"]
+dynamic = ["version"]
 readme = "README.md"
 description = "Automated Stepwise Addition Procedure for Extrafullerene."
 authors = [{name = "franklalalala", email = "1660810667@qq.com"}]
@@ -30,7 +30,6 @@ py-modules = ["src"]
 
 [tool.setuptools.dynamic]
 version = {file = ["VERSION"]}
-readme = {file = ["README.md"]}
 
 [project.urls]
 Source = "https://github.com/franklalalala/AutoSteper"
