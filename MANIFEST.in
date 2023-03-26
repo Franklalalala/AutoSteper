@@ -2,7 +2,7 @@ prune tests
 recursive-include doc *
 recursive-include src *
 include README.md
-include CHANGELOG.rst
+include CHANGELOG.md
 include VERSION
 include setup.py
 include setup.cfg
