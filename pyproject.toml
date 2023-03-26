@@ -28,6 +28,10 @@ dependencies = [
 [tool.setuptools]
 packages = ["autosteper"]
 
+[tool.setuptools.packages.find]
+include = ["src"]
+exclude = ["doc*", "tests*"]
+
 [tool.setuptools.dynamic]
 version = {file = ["VERSION"]}
 
