@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.8](https://github.com/Franklalalala/AutoSteper/compare/v1.3.7...v1.3.8) (2023-03-27)
+
+
+### Bug Fixes
+
+* final release please test ([2988198](https://github.com/Franklalalala/AutoSteper/commit/2988198e597c6398ac9e96e6f3db28cd7a0cd47a))
+
 ## [1.3.7](https://github.com/Franklalalala/AutoSteper/compare/v1.0.0...v1.3.7) (2023-03-27)
 
 
