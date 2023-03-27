@@ -22,8 +22,8 @@
 
 <center><font size='70'>AutoSteper</font></center>
 <center>Liu Mingkang (刘明康)</center>
-<center>2023.03.10</center>
-<center>V1.1.2</center>
+<center>2023.03.27</center>
+<center>V1.3.8</center>
 
 
 
@@ -102,19 +102,12 @@ To install the main project:
 pip install AutoSteper
 ```
 
-For other reliance:
-
-```
-pip install pytest-shutil, ase, numpy, pandas, networkx, tqdm, matplotlib, seaborn, dpdispatcher
-```
-
 To install from source code:
 
 ```
 git clone https://github.com/Franklalalala/AutoSteper
 cd AutoSteper
 pip install .
-pip install -r requirements.txt
 ```
 
 ## AutoSteper
