@@ -60,4 +60,6 @@ pip install .
 
 Issues are welcomed if you have any questions.
 
+Contributions needs to stay in line with [Conventional Commit messages](https://www.conventionalcommits.org/).
+
 Contact me: 1660810667@qq.com
