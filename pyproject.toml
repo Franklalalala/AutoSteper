@@ -30,7 +30,7 @@ dependencies = [
 packages = ["autosteper"]
 
 [tool.setuptools.dynamic]
-version = {file = ["VERSION"]}
+version = {file = ["version.txt"]}
 
 [project.urls]
 Source = "https://github.com/franklalalala/AutoSteper"

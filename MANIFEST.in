@@ -3,7 +3,7 @@ recursive-include doc *
 recursive-include src *
 include README.md
 include CHANGELOG.md
-include VERSION
+include version.txt
 include setup.py
 include setup.cfg
 include overview.png
