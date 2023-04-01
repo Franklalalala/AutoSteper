@@ -39,7 +39,7 @@
 
 ## Introduction
 
-AutoSteper is a python package to simulate and analyze the stepwise reaction in chemistry. Currently, it well supports the exohedral fullerene systems $\rm C_{2n}X_m(X=H, F,Cl, Br,OH, CF_3, CH_3)$. Our lab is working intensively to cover more scenarios. Extensions and issues are greatly appreciated.
+AutoSteper is a python package to simulate and analyze the stepwise reaction in chemistry. Currently, it well supports the exohedral fullerene systems $\rm C_{2n}X_m(X=H, F,Cl, Br, I, OH, CF_3, CH_3)$. Our lab is working intensively to cover more scenarios. Extensions and issues are greatly appreciated.
 
 The stepwise reaction of exohedral fullerenes originated from the radical-addition theory,[^1] in which the functionalization of fullerenes is described to be a radical attack behavior. Functional groups attack the carbon cage one by one, and the energetically favored adducts could be isolated. 
 
@@ -67,48 +67,61 @@ Installation, details of each module as well as the post-analysis functions are 
 
 ## Install
 
-### Enumeration
+## For users
 
-AutoSteper relies on OpenSource projects [FullereneDataPraser](https://github.com/XJTU-ICP/FullereneDataParser) and [usenauty](https://github.com/Franklalalala/usenauty) to properly enumerate non-isomorphic addition patterns.
-
-[FullereneDataPraser](https://github.com/XJTU-ICP/FullereneDataParser) is an excellent python package to handle fullerene-related research problems, this project utilizes it to convert 3D coordinates to graph6str format. For install:
+Autosteper has an dependency on multiple python packages, namely, the importlib-metadata, ase, numpy, pandas, networkx, tqdm, matplotlib, seaborn, and dpdispatcher. Installation of all of them and this project has been integrated into a single command line:
 
 ```
-git clone https://github.com/XJTU-ICP/FullereneDataParser
-cd FullereneDataParser
-pip install .
+pip install autosteper
 ```
 
-[usenauty](https://github.com/Franklalalala/usenauty) is a lightweight tool to enumerate non-isomorphic addition patterns with [nauty](https://doi.org/10.1016/j.cpc.2020.107206) algorithm. The original project is in [usenauty](https://github.com/saltball/usenauty), here we employ a branch version of it. For install:
+Besides, Autosteper relies on open source project [FullereneDataPraser](https://github.com/XJTU-ICP/FullereneDataParser) to convert 3D coordinates to graph6str format and properly visualize isomers, pathways, and SWR pairs. [FullereneDataPraser](https://github.com/XJTU-ICP/FullereneDataParser) has not been published on Pypi, according to [setuptool documentation](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#direct-url-dependencies), the unpublished project could not be used as a dependency for the published package. Therefore, it needs to be installed separately:
 
 ```
-git clone https://github.com/Franklalalala/usenauty
-cd usenauty
-mkdir build
-cd build
-cmake .. -G "Unix Makefiles"
-make
+pip install git+https://github.com/XJTU-ICP/FullereneDataParser
 ```
 
-Note: The [CXX standard](https://en.wikipedia.org/wiki/C%2B%2B17) is set to be **17**, which means the gcc version need to be 8 or higher, or a higher version of IDE, such as [Visual Studio 2017](https://en.wikipedia.org/wiki/Microsoft_Visual_Studio#2017). The cmake version need to be **3.1** or higher. There are two pre-compiled releases for Windows and Linux platform, respectively.
+Finally, the in-house built C++ project [usenauty](https://github.com/Franklalalala/usenauty) needs to be collected. [usenauty](https://github.com/Franklalalala/usenauty) is a lightweight tool to enumerate non-isomorphic addition patterns with [nauty](https://doi.org/10.1016/j.cpc.2020.107206) algorithm which is created by Brendan D. McKay. The original modification is performed in [usenauty](https://github.com/saltball/usenauty) by XJTU-ICP member Y. B. Han. Here we employ a branch version of it. 
 
-The absolute path of compiled `cagesearch` file corresponds to the `gen_core_path` button in `generator` module.
+Unlike previously mentioned packages, the installation of [usenauty](https://github.com/Franklalalala/usenauty) is different for Linux and Windows. **There are two pre-compiled** releases for two platforms, users are encouraged to [download](https://github.com/Franklalalala/usenauty/releases) the corresponding releases. 
 
-### Main project
-
-To install the main project:
+After downloading, users need to assign execution permissions:
 
 ```
-pip install AutoSteper
+chmod +x path/to/cagesearch
 ```
 
-To install from source code:
+A simple test is encouraged:
+
+```
+path/to/cagesearch
+```
+
+If everything goes well, a gentle notation is expected:
+
+![image-20221220010149410](./fig/nauty_notation.png)
+
+<center>Fig 4. The usenauty notation.</center>
+
+## For developers
+
+Any contribution is greatly appreciated. To install from the source code, the AutoSteper package:
 
 ```
 git clone https://github.com/Franklalalala/AutoSteper
 cd AutoSteper
-pip install .
+pip install . -e
 ```
+
+The FullereneDataParser package:
+
+```
+git clone https://github.com/XJTU-ICP/FullereneDataParser
+cd FullereneDataParser
+pip install . -e
+```
+
+To compile the usenauty project, please follow instructions in [usenauty](https://github.com/Franklalalala/usenauty).
 
 ## AutoSteper
 
@@ -191,11 +204,11 @@ auto.run()
 The `resrc_para` and `mach_para` are designed to configure a suitable environment for optimizers. (see optimizer module) After that, one needs to configure the parameter of the class `AutoSteper`. Specifically, one needs to provide:
 
 * `pristine_path`: the path to the pristine cage. It could be in any mainstream structure format, only if the [ASE](https://wiki.fysik.dtu.dk/ase/ase/io/io.html#ase.io.read) package supports it.
-* `root`: the ABSOLUTE path to the growth simulation workbase, where the AutoSteper would make a directory in the name of the pristine cage. Fig 4 presents one of the workbase directory.
+* `root`: the ABSOLUTE path to the growth simulation workbase, where the AutoSteper would make a directory in the name of the pristine cage. Fig 5 presents one of the workbase directory.
 
 ![root](./fig/root.png)
 
-<center>Fig 4. An AutoSteper workbase.</center>
+<center>Fig 5. An AutoSteper workbase.</center>
 
 The `gen_para` and `opt` parameters configure a generator and an optimizer. To simulate a stepwise addition reaction, one needs to provide the `run_para` with the following parameters considered.
 
@@ -204,17 +217,17 @@ The `gen_para` and `opt` parameters configure a generator and an optimizer. To s
 * `step`: number of the newly attached functional groups after the first step.
 * `wht_list_para`: parameters to control the isomers saved in every step. These isomers will serve as seeds in the next step to generate derivatives. The white list is a relatively concept to the blacklist. 7 modes could be selected, details see [AutoSteper/test_cutoff.py](https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_cutoff/test_cutoff.py). The default mode is `rank_and_value`, in which the `rank` is 200, and the `value` is 1eV. `rank_and_value` means the lower boundary of two of them.
 
-AutoSteper would create sub-workbases for every addon number. Fig 5 presents one of the scenarios. In this case, the `start` value is 1, the `stop` value is 10, and the `step` value is 1.
+AutoSteper would create sub-workbases for every addon number. Fig 6 presents one of the scenarios. In this case, the `start` value is 1, the `stop` value is 10, and the `step` value is 1.
 
 ![addon](./fig/addon.png)
 
-<center>Fig 5. An AutoSteper sub-workbase.</center>
+<center>Fig 6. An AutoSteper sub-workbase.</center>
 
-The directory of the **first** step is illustrated in Fig 6.
+The directory of the **first** step is illustrated in Fig 7.
 
 ![first_step](./fig/first_step.png)
 
-<center>Fig 6. The first step workbase.</center>
+<center>Fig 7. The first step workbase.</center>
 
 The functions of each file/directory are presented below.
 
@@ -223,7 +236,7 @@ The functions of each file/directory are presented below.
 * `cooking`: the real workbases for each optimization job. It typically contains more optimization details than the `cooked` folder.
 * `failed_job_paths`: the absolute path of each failed optimization job as well as their corresponding failed status code.
 * `geom_1_addons.out`: the enumerated addition patterns in the first step. `geom` is the name of the pristine cage, `1` is the addon number of the first step.
-* `passed_info.pickle`: key information of the optimization jobs that **passed** the topological check. In the early version of AutoSteper, this file is called `deep_yes_info.pickle`, meaning information is stored in a deep chart. Fig 7 presents one of the scenarios. The meaning of each column is presented below:
+* `passed_info.pickle`: key information of the optimization jobs that **passed** the topological check. In the early version of AutoSteper, this file is called `deep_yes_info.pickle`, meaning information is stored in a deep chart. Fig 8 presents one of the scenarios. The meaning of each column is presented below:
   * `name`: the name for each isomer, in 36 format.
   * `energy`: the equilibrium energy of each isomer, in units eV.
   * `xyz_path`: the absolute path to each isomer structure, in `xyz` format.
@@ -231,19 +244,19 @@ The functions of each file/directory are presented below.
 
 ![deep_yes](F:\AutoSteper_doc\fig\deep_yes.png)
 
-<center>Fig 7. Example of the passed_info.</center>
+<center>Fig 8. Example of the passed_info.</center>
 
 * `parent_info.pickle`: key information of the **parent-son** relationships generated during the growth simulation. In the early version of AutoSteper, this file is called `flat_yes_info.pickle`, meaning information is stored in a flat chart, and only the passed isomers are considered. The flat format enables a fast index when parsing the topological information.
-  * The first step is different from others since there is only one parent for all the $\rm C_{2n}X_{start}$ isomers. Fig 8 presents one of the cases. The columns correspond to each $\rm C_{2n}X_{start}$ isomer. The first row corresponds to their energy.
-  * Fig 9 presents a case in the proceeding addition stages. The columns correspond to each $\rm C_{2n}X_{m}, m>start$ isomer. The first row stores the names of their parent(s). Note that, isomers in $\rm C_{2n}X_{m}$ addition stage could have more than one parent $\rm C_{2n}X_{m-step}$. The second row corresponds to their energy. 
+  * The first step is different from others since there is only one parent for all the $\rm C_{2n}X_{start}$ isomers. Fig 9 presents one of the cases. The columns correspond to each $\rm C_{2n}X_{start}$ isomer. The first row corresponds to their energy.
+  * Fig 10 presents a case in the proceeding addition stages. The columns correspond to each $\rm C_{2n}X_{m}, m>start$ isomer. The first row stores the names of their parent(s). Note that, isomers in $\rm C_{2n}X_{m}$ addition stage could have more than one parent $\rm C_{2n}X_{m-step}$. The second row corresponds to their energy. 
 
 ![flat_yes_first](./fig/flat_yes_first.png)
 
-<center>Fig 8. Example of the parent_info in the first step.</center>
+<center>Fig 9. Example of the parent_info in the first step.</center>
 
 ![flat_yes_after](./fig/flat_yes_after.png)
 
-<center>Fig 9. Example of the parent_info in the proceeding addition stages.</center>
+<center>Fig 10. Example of the parent_info in the proceeding addition stages.</center>
 
 * `status_info.pickle`: the status code for each optimization job, in flat chart format for indexing convenience. Note that this status code is different from the failed status code. Only three codes are available:
   * `0`: normal termination.
@@ -252,21 +265,21 @@ The functions of each file/directory are presented below.
 
 ![status_info](./fig/status_info.png)
 
-<center>Fig 10. Example of the status_info.</center>
+<center>Fig 11. Example of the status_info.</center>
 
-The directory of the **proceeding addition stages** is illustrated in Fig 11. The difference compared with the first step is presented below:
+The directory of the **proceeding addition stages** is illustrated in Fig 12. The difference compared with the first step is presented below:
 
 - `sub_nauty`: there is more than one parent that generates derivatives. Related information is dumped in this folder.
 
 ![after_step](F:\AutoSteper_doc\fig\after_step.png)
 
-<center>Fig 11. The workbase for the proceeding addition stages.</center>
+<center>Fig 12. The workbase for the proceeding addition stages.</center>
 
-- `all_parent_info.pickle`: the parent-son information for all the $\rm C_{2n}X_{m}$ isomers. (see Fig 12.) This is generated when building the quasi-equilibrium isomers. Note that the `parent_info.pickle` only considers the passed ones, and it contains energy info. The `all_parent_info.pickle` stores duplicated but more detailed information, therefore it may be useful for future development.
+- `all_parent_info.pickle`: the parent-son information for all the $\rm C_{2n}X_{m}$ isomers. (see Fig 13.) This is generated when building the quasi-equilibrium isomers. Note that the `parent_info.pickle` only considers the passed ones, and it contains energy info. The `all_parent_info.pickle` stores duplicated but more detailed information, therefore it may be useful for future development.
 
 ![all_parent_info](F:\AutoSteper_doc\fig\all_parent_info.png)
 
-<center>Fig 12. Example of the all_parent_info.</center>
+<center>Fig 13. Example of the all_parent_info.</center>
 
 ### random
 
@@ -295,7 +308,7 @@ The `restart` feature is designed for the step mode in case the simulation is in
 auto.restart(restart_add_num=5)
 ```
 
-Note that, the `restart` method will delete the original workbase for $\rm C_{2n}X_{m}, m>= restart\_add\_num$, after that, a new workbase will be created for $\rm C_{2n}X_{m}, m= restart\_add\_num$. Make sure the `restart_add_num` equals the exact addon stage when the simulation was interrupted.
+Note that, the `restart` method will delete the original workbase for $\rm C_{2n}X_{m}, m>= restart\_add\_num$, after that, a new workbase will be created for $\rm C_{2n}X_{m}, m= restart\_add\_num$. Make sure the `restart_add_num` equals the exact to addon stage when the simulation was interrupted.
 
 Besides, this feature could be used to **proceed** with a normally terminated simulation. For example, the original one terminated in `add_num = 4`, and the restart_add_num could be set as `4+step`.
 
@@ -303,11 +316,12 @@ Besides, this feature could be used to **proceed** with a normally terminated si
 
 The `error_handling` feature is assigned to optimizers. For description convenience, details of them are presented in this section. Note that, the `error` mentioned here denotes an unexpected optimization task result, which is different from the `failed` notation.
 
-There are 3 modes in total. Specifically:
+There are 4 modes in total. Specifically:
 
 - `Report`: simply report the wrong information and end out.
-- `Complete`: recursively submit jobs in small batches to minimize the wrong jobs, then end out. Note that, the dpdispatcher submits jobs in a batch style. When there is one job ends unexpectedly, there would be no retrieval from the remote for the whole batch. The `Complete` mode will submit recursively with small batches until the abnormal ones are left.
-- `Tough`: designed for `random` mode in case the whole batch of randomly generated isomers are unphysical.
+- `Complete`: recursively submit jobs in small batches to minimize the wrong jobs, then end out. Note that, the dpdispatcher submits jobs in a batch style. When there is one job ends unexpectedly, there would be no retrieval from the remote for the whole batch. The `Complete` mode will submit recursively with small batches until the abnormal ones are left. 
+- `Tough`: designed for `random` mode in case the whole batch of randomly generated isomers are unphysical. The old batch will be discarded and a new batch will be generated.
+- `Ignore`: designed for `random` mode in case there are abnormally terminated jobs. There will be warnings while the simulation proceeds.
 
 ## Optimizer
 
@@ -364,19 +378,19 @@ resrc_para = {
 
 The machine parameters tell the dpdispatcher **which cluster** to use and **how to contact**, while the resource parameter **assigns** computation resources to each job.
 
-The original workflow of the dpdispatcher is illustrated in Fig 13.
+The original workflow of the dpdispatcher is illustrated in Fig 14.
 
 ![dpdispatch_arch](./fig/dpdispatch_arch.png)
 
-<center>Fig 13. Simplified workflow of dpdispatcher.</center>
+<center>Fig 14. Simplified workflow of dpdispatcher.</center>
 
 Each optimization job corresponds to a task. Then, tasks are grouped (`group_size`) into jobs. These jobs are submitted through ssh or local context (`context_type`) to remote (`remote_root`), where the remote would assign computational resources to each job (`All_cpu_cores /cpu_per_node`) and execute them in parallel.
 
-However, when it comes to huge task sequences, the number of groups in line may put pressure on the cluster. And when something wrong happened in a single job, the whole batch would be undermined. (For example, no retrieval from remote.) Therefore, we proposed the `sub_batch_size` parameter to perform job dispatch in a mini-batch style. An illustration of the modified dpdispatcher is presented in Fig 14. 
+However, when it comes to huge task sequences, the number of groups in line may put pressure on the cluster. And when something wrong happened in a single job, the whole batch would be undermined. (For example, no retrieval from remote.) Therefore, we proposed the `sub_batch_size` parameter to perform job dispatch in a mini-batch style. An illustration of the modified dpdispatcher is presented in Fig 15. 
 
 ![sub_batch_arch](./fig/sub_batch_arch.png)
 
-<center>Fig 14. A top-down illustration of the modified dpdispatcher.</center>
+<center>Fig 15. A top-down illustration of the modified dpdispatcher.</center>
 
 More details could be found in the documentation of [Machine parameters](https://docs.deepmodeling.com/projects/dpdispatcher/en/latest/machine.html) and [Resources parameters](https://docs.deepmodeling.com/projects/dpdispatcher/en/latest/resources.html). 
 
@@ -398,7 +412,7 @@ The details about related parameters are presented below:
 
 The generator module is in charge of building molecules. Details of parameters are presented below:
 
-- `group`: the name of functional groups. Currently, AutoSteper supports $\rm C_{2n}X_m(X=H, F,Cl, Br,OH, CF_3, CH_3)$.
+- `group`: the name of functional groups. Currently, AutoSteper supports $\rm C_{2n}X_m(X=H, F,Cl, Br, I, OH, CF_3, CH_3)$.
 
 - `gen_core_path`: the absolute path to the executable binary file `cagesearch`, which is compiled from the [Franklalalala/usenauty](https://github.com/Franklalalala/usenauty) repository. 
 -  `geom_mode`: decides how to build quasi-equilibrium isomers. This parameter is highly recommended to be set as `pre_defined`. The pre-defined geometry parameters are chosen from thousands of randomly sampled isomers. If one needs to change these parameters, set `geom_mode` to another value and assign new parameters through `geom_para`. Note that, the new format needs to stay consistent with [the original](https://github.com/Franklalalala/AutoSteper/blob/18f474b0dd58adc9cd7484007a14927e2cde5123/src/autosteper/generator.py#L12).
@@ -425,7 +439,7 @@ Need to mention that, the AutoSteper module doesn’t need any specific input pa
 
 ## Blacklist
 
-The concept of the blacklist is based on the assumption that high-energy isomers probably contain local instability motifs, therefore their derivatives will unlikely to become stable ones since they still contain those instability motifs. This is a dual concept to the low-energy configuration space, which is treated as seeds to generate derivatives. See Fig 15.
+The concept of the blacklist is based on the assumption that high-energy isomers probably contain local instability motifs, therefore their derivatives will unlikely to become stable ones since they still contain those instability motifs. This is a dual concept to the low-energy configuration space, which is treated as seeds to generate derivatives. See Fig 16.
 
 AutoSteper collects two kinds of isomers into the blacklist.
 
@@ -434,15 +448,15 @@ AutoSteper collects two kinds of isomers into the blacklist.
 
 ![blacklist_landscape](./fig/blacklist_landscape.png)
 
-<center>Fig 15. Illustration of the high-energy configuration space.</center>
+<center>Fig 16. Illustration of the high-energy configuration space.</center>
 
 When it comes to a new step, the new addition patterns will check through the blacklist at first. If a pattern contains any of the recorded patterns, it will be directly skipped.
 
-To control the influence of a high-energy pattern, AutoSteper provides a queue to store high-energy patterns. See Fig 16.
+To control the influence of a high-energy pattern, AutoSteper provides a queue to store high-energy patterns. See Fig 17.
 
 ![blk_list](./fig/blk_list.png)
 
-<center>Fig 16. Illustration of the queue maintained by AutoSteper.</center>
+<center>Fig 17. Illustration of the queue maintained by AutoSteper.</center>
 
 AutoSteper starts collecting high-energy isomers in `start_clct_num`. These patterns start functioning in the next step and will continue to function till `start_clct_num+container_size*step`. The blacklist system will shut down after `final_chk`.
 
@@ -467,11 +481,11 @@ Note that, all failed addition patterns are collected by default as long as the 
 
 The pre-scan feature takes the quasi-equilibrium geometry to approximate the equilibrium state isomer. Since AutoSteper builds quasi-equilibrium isomers in a python environment, currently only the python package [ASE](https://wiki.fysik.dtu.dk/ase/about.html) is supported as the single-point evaluator. 
 
-The generated isomer (in `atom` class) would go through a single-point evaluation before dumping to a xyz format file. After the generation of all isomers, the low-energy ones will be selected and re-dumped into the `post_pre_scan_raw` folder. These isomers would undergo geometry optimization with optimizers. Fig 17 presents a working folder when the pre-scan feature is enabled. It’s basically the same as the `step` mode workbase.
+The generated isomer (in `atom` class) would go through a single-point evaluation before dumping to a xyz format file. After the generation of all isomers, the low-energy ones will be selected and re-dumped into the `post_pre_scan_raw` folder. These isomers would undergo geometry optimization with optimizers. Fig 18 presents a working folder when the pre-scan feature is enabled. It’s basically the same as the `step` mode workbase.
 
 ![pre_scan_folder](F:\AutoSteper_doc\fig\pre_scan_folder.png)
 
-<center>Fig 17. The workbase when the pre-scan feature enabled.</center>
+<center>Fig 18. The workbase when the pre-scan feature enabled.</center>
 
 To enable a pre-scan feature, one needs to provide a `pre_scan_para`. Here is an example of `pre_scan_para`, for example of an input script, see [AutoSteper/test_pre_scan.py](https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_pre_scan_restart/test_pre_scan.py).
 
@@ -552,11 +566,11 @@ After that, one needs to provide:
 
 #### strict_scatter_relatives
 
-This function is designed to strictly find relatives of a specific isomer. It implements the [subgraph_is_isomorphic](https://networkx.org/documentation/latest/reference/algorithms/generated/networkx.algorithms.isomorphism.GraphMatcher.subgraph_is_isomorphic.html#graphmatcher-subgraph-is-isomorphic) function to perform the isomorphism test and dump information in a png format (see Fig 18). The input parameters are basically the same as the above function. The difference is that it needs a folder to dump information. 
+This function is designed to strictly find relatives of a specific isomer. It implements the [subgraph_is_isomorphic](https://networkx.org/documentation/latest/reference/algorithms/generated/networkx.algorithms.isomorphism.GraphMatcher.subgraph_is_isomorphic.html#graphmatcher-subgraph-is-isomorphic) function to perform the isomorphism test and dump information in a png format (see Fig 19). The input parameters are basically the same as the above function. The difference is that it needs a folder to dump information. 
 
 ![iso_rel_e](./fig/iso_rel_e.png)
 
-<center>Fig 18. Example of the dumped information. The red 'x' presents a relative, blue '+' is a non-isomerphic one.</center>
+<center>Fig 19. Example of the dumped information. The red 'x' presents a relative, blue '+' is a non-isomerphic one.</center>
 
 In addition, AutoSteper dumps the relative energy of each scanned isomer, and groups them into the `non_rel_e` and `rel_e`.
 
@@ -670,11 +684,11 @@ path_para = {
 
 This is for the case when the queried addon number is very high. Since the `Path_Parser` functions in a DFS way, the low-energy pathways will be well preserved.
 
-The generated pathways are highly structured and informative, see [AutoSteper/test_path_parser](https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_path_parser). Here presents the well-designed heatmap. See Fig 19.
+The generated pathways are highly structured and informative, see [AutoSteper/test_path_parser](https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_path_parser). Here presents the well-designed heatmap. See Fig 20.
 
 ![Path_relative_energy](./fig/Path_relative_energy.png)
 
-<center>Fig 19. Example of the generated heatmap for pathways.</center>
+<center>Fig 20. Example of the generated heatmap for pathways.</center>
 
 It well-explained the ranking of pathways. For example, all the related isomers for the pathway in row 1 is the lowest-energy one (relative energy is 0), therefore it’s the lowest-energy pathway.
 

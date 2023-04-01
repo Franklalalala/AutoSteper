@@ -12,6 +12,7 @@ from numpy import pi
 pre_def_geom_para = {
     'len_cage_Cl': 1.81,
     'len_cage_Br': 2.00,
+    'len_cage_I': 2.26,
     'len_cage_F': 1.37,
     'len_cage_H': 1.10,
     'len_cage_CH3': 1.54,
@@ -80,7 +81,7 @@ class Generator():
             else:
                 addon_coord_0 = self.old_coords[i] - normal_vec * self.geom_para[f'len_cage_{self.group}']
 
-            if self.group in ['Cl', 'F', 'H', 'Br']:
+            if self.group in ['Cl', 'F', 'H', 'Br', 'I']:
                 new_atom_0 = Atom(symbol=self.group, position=addon_coord_0)
                 new_cage.append(new_atom_0)
             else:

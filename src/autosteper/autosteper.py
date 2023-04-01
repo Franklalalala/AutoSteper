@@ -114,27 +114,25 @@ class AutoSteper():
                                      dump_folder=self.optimizer.path_raw,
                                      dyn_cage=self.cage,
                                      prev_xyz_path=self.cage.pristine_path)
-                self.optimizer.checker = None
                 random_status = self.optimizer.opt()
-                break
-                # if random_status != 0:
-                #     os.chdir(self.cage.workbase)
-                #     shutil.rmtree(self.cage.addon_path)
-                #     if random_status == -2:
-                #         warnings.warn(
-                #             f'Something wrong happened while optimizing isomers in {self.optimizer.path_cooking}.\n'
-                #             f'The whole batch will be discarded.')
-                #     elif random_status == -1:
-                #         warnings.warn(f'All jobs failed while optimizing isomers in {self.optimizer.path_cooking}.\n'
-                #                       f'The whole batch will be discarded.')
-                # else:
-                #     break
-                # if opt_times == self.try_times - 1:
-                #     print(f'Random opt procedure has performed {self.try_times} times, '
-                #           f'still get wrong or failed status. It\'s been terminated, please check this system.')
-                #     break
-                # else:
-                #     opt_times = opt_times + 1
+                if random_status != 0:
+                    os.chdir(self.cage.workbase)
+                    shutil.rmtree(self.cage.addon_path)
+                    if random_status == -2:
+                        warnings.warn(
+                            f'Something wrong happened while optimizing isomers in {self.optimizer.path_cooking}.\n'
+                            f'The whole batch will be discarded.')
+                    elif random_status == -1:
+                        warnings.warn(f'All jobs failed while optimizing isomers in {self.optimizer.path_cooking}.\n'
+                                      f'The whole batch will be discarded.')
+                else:
+                    break
+                if opt_times == self.try_times - 1:
+                    print(f'Random opt procedure has performed {self.try_times} times, '
+                          f'still get wrong or failed status. It\'s been terminated, please check this system.')
+                    break
+                else:
+                    opt_times = opt_times + 1
 
     def _first_step(self):
         self.cage.set_add_num(self.start)

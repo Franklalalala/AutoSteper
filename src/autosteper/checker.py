@@ -93,7 +93,7 @@ class Checker():
             group_status, self.q_atoms = self.check_group_intactness()
             if group_status:
                 return group_status
-        if self.group in ['OH', 'Cl', 'F', 'H', 'Br']:
+        if self.group in ['OH', 'Cl', 'F', 'H', 'Br', 'I']:
             cutoffs = natural_cutoffs(self.q_atoms)
         else:
             cutoffs = [natural_cutoffs(self.pst_cage.atoms)[0]] * len(self.q_atoms)
