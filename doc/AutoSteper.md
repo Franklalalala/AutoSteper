@@ -75,7 +75,7 @@ Autosteper has an dependency on multiple python packages, namely, the importlib-
 pip install autosteper
 ```
 
-Besides, Autosteper relies on open source project [FullereneDataPraser](https://github.com/XJTU-ICP/FullereneDataParser) to convert 3D coordinates to graph6str format and properly visualize isomers, pathways, and SWR pairs. [FullereneDataPraser](https://github.com/XJTU-ICP/FullereneDataParser) has not been published on Pypi, according to [setuptool documentation](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#direct-url-dependencies), the unpublished project could not be used as a dependency for the published package. Therefore, it needs to be installed separately:
+Besides, Autosteper relies on open source project [FullereneDataParser](https://github.com/XJTU-ICP/FullereneDataParser) to convert 3D coordinates to graph6str format and properly visualize isomers, pathways, and SWR pairs. [FullereneDataParser](https://github.com/XJTU-ICP/FullereneDataParser) has not been published on Pypi. According to [Pypi policy](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#direct-url-dependencies), the unpublished project **could not** be used as a dependency for the published package. Therefore, it needs to be installed separately:
 
 ```
 pip install git+https://github.com/XJTU-ICP/FullereneDataParser
@@ -85,23 +85,41 @@ Finally, the in-house built C++ project [usenauty](https://github.com/Franklalal
 
 Unlike previously mentioned packages, the installation of [usenauty](https://github.com/Franklalalala/usenauty) is different for Linux and Windows. **There are two pre-compiled** releases for two platforms, users are encouraged to [download](https://github.com/Franklalalala/usenauty/releases) the corresponding releases. 
 
-After downloading, users need to assign execution permissions:
+For example, linux users could download the gcc-8.4.0 version with command line as below:
+
+```
+wget https://github.com/Franklalalala/usenauty/releases/download/linux/cagesearch
+```
+
+After downloading, users need to assign execution permissions and load a gcc environment:
 
 ```
 chmod +x path/to/cagesearch
+module load compiler/gcc/8.4.0
 ```
 
-A simple test is encouraged:
+Note that, any gcc version above 8.4.0 is technically suitable. 
+
+If everything goes well, a gentle notation is expected after executing this binary file: 
 
 ```
 path/to/cagesearch
 ```
 
-If everything goes well, a gentle notation is expected:
-
 ![image-20221220010149410](./fig/nauty_notation.png)
 
-<center>Fig 4. The usenauty notation.</center>
+<center>The usenauty notation.</center>
+
+The absolute path of this file corresponds to the `gen_core_path` in the generator module, as demonstrated in [test_step.py](https://github.com/Franklalalala/AutoSteper/blob/b1ae14e734b2013628ffca241ab44eba6510f970/tests/test_step/test_step.py#L38).
+
+### Tips for users from Chinese Mainland
+
+A [GitHub Proxy](https://ghproxy.com/) will speed up the installation from github:
+
+```
+pip install git+https://ghproxy.com/https://github.com/XJTU-ICP/FullereneDataParser
+wegt https://ghproxy.com/https://github.com/Franklalalala/usenauty/releases/download/linux/cagesearch
+```
 
 ## For developers
 
