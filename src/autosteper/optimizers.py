@@ -2,6 +2,7 @@ import math
 import os
 import shutil
 from typing import Union
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -187,6 +188,9 @@ class Optimizer():
                 raise RuntimeError(f'Something wrong happened while optimizing isomers in {self.path_cooking}.')
             elif self.deal_wrong_mode == 'Tough':
                 return -2
+            elif self.deal_wrong_mode == 'Ignore':
+                warnings.warn(f'Something wrong happened while optimizing isomers in {self.path_cooking}.'
+                              f'The simulation continues.')
         if self.checker:
             self.status_codes = self.checker.check(passed_info_path='passed_info.pickle',
                                                    status_info_path='status_info.pickle')
