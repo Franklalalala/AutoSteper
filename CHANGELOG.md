@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/Franklalalala/AutoSteper/compare/v1.4.0...v2.0.0) (2023-04-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* add plotter module
+
+### Features
+
+* add plotter module && sphinx decorated documentation ([edabedf](https://github.com/Franklalalala/AutoSteper/commit/edabedf63a1ed220ce7fe9e90e04bd6874162d00))
+
 ## 1.4.0 (2023-04-01)
 
 ### Features
