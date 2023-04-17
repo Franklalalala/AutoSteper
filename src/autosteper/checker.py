@@ -174,6 +174,7 @@ class Checker():
         passed_info = passed_info.drop(failed_idxes)
         passed_info.index = list(range(len(passed_info.index)))
         passed_info.to_pickle(passed_info_path)
+        passed_info[:1000].to_excel(passed_info_path[:-6]+'xlsx')
         status_info.to_pickle(status_info_path)
         status_codes = list(status_info.T[0])
 

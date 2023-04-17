@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import seaborn as sns
@@ -70,7 +72,7 @@ def _prep_relatives(q_atoms: Atoms = None, group: str = None, cage_size: int = N
               'The atom sequence in two cages should be identical.\n'
               'The addons should be atomic addons.\n'
               'Complex senerio could be tackled with strip_extraFullerene function in tools module.')
-        pristine_cage, q_add_set = strip_extraFullerene(atoms=q_atoms, group=group, cage_size=cage_size)
+        pristine_cage, q_add_set = strip_extraFullerene(atoms=q_atoms, group=group)
     elif q_seq:
         _, q_add_set, _0 = seq2name(q_seq, q_cage)
     else:
@@ -244,7 +246,7 @@ def strict_scatter_relatives(workbase: str, dump_folder: str,
 
 
 def cook_disordered(disordered_root: str, dump_root: str, step: int, log_mode: str, keep_top_k_pathway: int,
-                    group: str = None, cage_size: int = None, file_mid_name: str = None):
+                    group: str = None, file_mid_name: str = None):
     """
     Pipeline to cook disordered log files.
     Sort log files first, get connection and pathway infos, dump pathways.
@@ -253,7 +255,7 @@ def cook_disordered(disordered_root: str, dump_root: str, step: int, log_mode: s
     dump_root = os.path.abspath(dump_root)
     sorted_root = os.path.join(dump_root, 'sorted')
     simple_parse_logs(dump_root=sorted_root, src_root=disordered_root,
-                      mode=log_mode, group=group, cage_size=cage_size, file_mid_name=file_mid_name)
+                      mode=log_mode, group=group, file_mid_name=file_mid_name)
     get_connection(xyz_root=os.path.join(sorted_root, 'xyz'),
                    connection_dump=os.path.join(sorted_root, 'connection'),
                    step=step)
@@ -275,9 +277,12 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
     Pristine cage needs to be prepared in log root.
     if is_unique is true, for every atoms in q_root, only one SWR target is outputed,
     typically for the lowest energy isomer, here we take the rank info in the name as criteria.
-    if is_low_e is true, for every atoms in q_root, only one SWR target is outputed,
-    and it should have a lower energy than the 'ought to be' parents.
+    if is_low_e is true, the energy criterion is applicated,
+    and all the SWR targets should have lower energy than the 'ought to be' children (derivatives).
     '''
+    cwd_swr = os.getcwd()
+    q_sorted_root = os.path.abspath(q_sorted_root)
+    tgt_sorted_root = os.path.abspath(tgt_sorted_root)
     rel_file_mid_name = lazy_file_mid_name(file_mid_name)
     swr_dump_path = os.path.abspath(swr_dump_path)
     os.makedirs(swr_dump_path, exist_ok=True)
@@ -293,8 +298,6 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
     tgt_cnt_root = os.path.join(tgt_sorted_root, 'connection')
 
     swr = map_SWR(q_atoms, tgt_atoms)
-    # swr = [[22,24], [22,24]]
-
     q_swr = swr[0]
     q_swr_adj_nodes = []
     for a_node in q_swr:
@@ -327,7 +330,7 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
             if not os.path.exists(a_file_path):
                 continue
             a_q_atoms = read(a_file_path)
-            _, q_addon_set = strip_extraFullerene(group=group, cage_size=cage_size, atoms=a_q_atoms)
+            _, q_addon_set = strip_extraFullerene(atoms=a_q_atoms, group=group)
             ept_nodes = q_swr_adj_nodes_set - q_addon_set
 
             ept_nodes_for_chk = set()
@@ -346,7 +349,7 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
                     tgt_add_num = int(a_tgt_file.split('_')[0])
                     if tgt_add_num == len(q_addon_set) + step:
                         a_tgt_atoms = read(os.path.join(tgt_xyz_root, a_tgt_file))
-                        _, tgt_addon_set = strip_extraFullerene(group=group, cage_size=cage_size, atoms=a_tgt_atoms)
+                        _, tgt_addon_set = strip_extraFullerene(atoms=a_tgt_atoms, group=group)
                         if len(done_nodes_for_chk - tgt_addon_set) == 0 and \
                                 len(ept_nodes_for_chk - tgt_addon_set) < len(ept_nodes_for_chk):
                             a_tgt_G_for_chk = get_G(a_tgt_atoms)
@@ -355,10 +358,14 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
                                 tgt_atoms_list.append(a_tgt_atoms)
                                 rank_list.append(int(a_tgt_file.split('.')[0].split('_')[-1]) - 1)
                 if len(rank_list) > 0:
+                    rank_list = sorted(rank_list)
+                    # Applicate the low e criterion
                     if is_low_e:
                         tgt_info = pd.read_pickle(os.path.join(tgt_sorted_root, 'info', 'info.pickle'))
                         q_info = pd.read_pickle(os.path.join(q_sorted_root, 'info', 'info.pickle'))
-                        tgt_e = tgt_info[len(q_addon_set) + step][sorted(rank_list)[0]]
+                        tgt_e_list = []
+                        for a_tgt_rank in rank_list:
+                            tgt_e_list.append(tgt_info[len(q_addon_set) + step][a_tgt_rank])
                         cnt = np.load(os.path.join(q_cnt_root, a_file[:-4] + '.npy'))
                         new_q_info = []
                         for idx, a_q_e in enumerate(q_info[len(q_addon_set) + step].dropna()):
@@ -366,11 +373,15 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
                                 if cnt[idx] == 1:
                                     new_q_info.append(a_q_e)
                         if len(new_q_info) != 0:
-                            if tgt_e > min(new_q_info):
+                            new_rank_list = []
+                            for idx, a_tgt_e in enumerate(tgt_e_list):
+                                if a_tgt_e < min(new_q_info):
+                                    new_rank_list.append(rank_list[idx])
+                            if len(new_rank_list) == 0:
                                 continue
+                            rank_list = new_rank_list
                     ###################################################
                     # dump
-                    rank_list = sorted(rank_list)
                     os.chdir(swr_dump_path)
                     os.makedirs(f'{len(q_addon_set)}_to_{len(tgt_addon_set)}_swr_{chked_q_add[len(q_addon_set)] + 1}',
                                 exist_ok=True)
@@ -382,7 +393,7 @@ def find_SWR(q_sorted_root: str, tgt_sorted_root: str, swr_dump_path: str,
                         rank_atoms_map = dict(zip(rank_list, tgt_atoms_list))
                         write(filename='q_atoms.xyz', images=a_q_atoms, format='xyz')
                         write(filename=f'tgt_atoms_rank_{idx + 1}.xyz', images=rank_atoms_map[a_rank], format='xyz')
-
+    os.chdir(cwd_swr)
 
 def get_binding_e(sorted_root: str, addends_e: float, cage_e: float, file_mid_name: str = None):
     cwd_binding = os.getcwd()
@@ -429,6 +440,117 @@ def get_binding_e(sorted_root: str, addends_e: float, cage_e: float, file_mid_na
     os.chdir('info')
     isomer_e_info.to_pickle('binding_e.pickle')
     isomer_e_info.to_excel('binding_e.xlsx')
+
+
+def count_swr_unit(swr_out_root: str):
+    swr_counter = {}
+    for a_swr in os.listdir(swr_out_root):
+        a_q_add_num = int(a_swr.split('_')[0])
+        a_swr_root = os.path.join(swr_out_root, a_swr)
+        new_swr_num = len(os.listdir(a_swr_root))-1
+        if a_q_add_num in swr_counter.keys():
+            new_swr_num = new_swr_num + swr_counter[a_q_add_num]
+        swr_counter.update({a_q_add_num: new_swr_num})
+    return swr_counter
+
+def count_SWR(swr_1_workbase: str, swr_2_workbase: str, swr_1_legend: str, swr_2_legend: str, dump_pic_path: str=None):
+    swr_1 = count_swr_unit(swr_1_workbase)
+    swr_2 = count_swr_unit(swr_2_workbase)
+    # get formateed x labels
+    add_list_set = set(swr_1.keys()) | set(swr_2.keys())
+    add_list = list(add_list_set)
+    add_list.sort()
+    # get formatted swr data
+    swr_clctor = {swr_1_legend: [], swr_2_legend: []}
+    for an_add in add_list:
+        prev_swr_1 = swr_clctor[swr_1_legend]
+        if not an_add in swr_1.keys():
+            prev_swr_1.append(0)
+        else:
+            prev_swr_1.append(swr_1[an_add])
+
+        prev_swr_2 = swr_clctor[swr_2_legend]
+        if not an_add in swr_2.keys():
+            prev_swr_2.append(0)
+        else:
+            prev_swr_2.append(swr_2[an_add])
+        swr_clctor.update({swr_1_legend: prev_swr_1, swr_2_legend: prev_swr_2})
+    # plot
+    x = np.array(add_list) # the label locations
+    width = 0.5  # the width of the bars
+    multiplier = 0
+    fig, ax = plt.subplots(layout='constrained')
+    for a_legend, counts in swr_clctor.items():
+        offset = width * multiplier
+        a_count = ax.bar(x + offset, counts, width, label=a_legend)
+        ax.bar_label(a_count, padding=3)
+        multiplier += 1
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Counts')
+    ax.set_xlabel('Number of addends')
+    ax.set_title('Count of SWR scenarios')
+    ax.set_xticks(x + width, add_list)
+    ax.legend(loc='best')
+    if dump_pic_path:
+        plt.savefig(dump_pic_path, dpi=400)
+        plt.close()
+    else:
+        plt.show()
+    return swr_clctor, add_list
+
+
+def clc_status_unit(info_path: str):
+    status_codes = ['1', '2', '3', '4', '5', '6', '7']
+    status_counter = {}
+    for a_code in status_codes:
+        status_counter.update({a_code: 0})
+    with open(info_path, 'r') as f_r:
+        for a_line in f_r.readlines():
+            a_code = a_line.split()[0]
+            status_counter[a_code] = status_counter[a_code] + 1
+    return status_counter
+
+
+def clc_failed(workbase: str, dump_pic_path: str=None, ylim: int=None):
+    failed_types = ["radical", "transfer", "3ring", "broken", "bridge", "cluster", "inner"]
+    failed_counts = {}
+    for a_type in failed_types:
+        failed_counts.update({a_type: []})
+    add_list = []
+    for a_folder in os.listdir(workbase):
+        an_add = int(a_folder.split('add')[0])
+        add_list.append(an_add)
+    add_list.sort()
+    for an_add in add_list:
+        a_folder = f'{an_add}addons'
+        a_failed_path = os.path.join(workbase, a_folder, 'failed_job_paths')
+        a_status_counter = clc_status_unit(a_failed_path)
+        for a_code, a_count in a_status_counter.items():
+            a_failed_type = failed_types[int(a_code) - 1]
+            previous_count = failed_counts[a_failed_type]
+            previous_count.append(a_count)
+            failed_counts.update({a_failed_type: previous_count})
+    width = 0.5
+    fig, ax = plt.subplots()
+    bottom = np.zeros(len(add_list))
+    for failed_type, count in failed_counts.items():
+        p = ax.bar(add_list, count, width, label=failed_type, bottom=bottom)
+        bottom += count
+    ax.bar_label(p, padding=3)
+    ax.set_title("Count of different failed types")
+    ax.legend(loc="upper left")
+    ax.set_xticks(add_list)
+    ax.set_xticklabels(add_list)
+    ax.set_xlabel('Addon number')
+    ax.set_ylabel('Count')
+    if ylim:
+        ax.set_ylim([0, max(ylim, bottom[-1] + 5)])
+    if dump_pic_path:
+        plt.savefig(dump_pic_path, dpi=400)
+        plt.close()
+    else:
+        plt.show()
+    return failed_counts, add_list
 
 
 class Path_Parser():
@@ -644,12 +766,14 @@ class Path_Parser():
         sorted_info = info.sort_values(by='e_area')
         sorted_info.index = sorted(sorted_info.index)
         sorted_info.to_pickle(f'all_info.pickle')
+        sorted_info[:1000].to_excel(f'all_info.xlsx')
         if self.ctr_path:
             sorted_info = sorted_info[sorted_info.index < self.max_path_num]
         if self.is_refine:
             sorted_info = _refine_e(old_info=sorted_info[sorted_info.index < self.refine_top_k])
 
         sorted_info.to_pickle(f'sorted_info.pickle')
+        sorted_info[:1000].to_excel(f'sorted_info.xlsx')
 
         # Get relative energy info
         e_lists = sorted_info['e_list']

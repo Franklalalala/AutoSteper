@@ -1,0 +1,15 @@
+2023-04-17 01:18:34,977 - INFO : info:check_all_finished: False
+2023-04-17 01:18:34,977 - INFO : remote path: /home/mkliu/test_dpdispatcher/e6cc8c0c4b9811dcf2a5485b1d509e1602f8bfcc
+2023-04-17 01:18:36,077 - INFO : job: ebaa2a2418c74cdc253b0fe272d924cd601b9522 submit; job_id is 476232.node01
+2023-04-17 01:20:01,707 - INFO : info:check_all_finished: False
+2023-04-17 01:20:01,707 - INFO : remote path: /home/mkliu/test_dpdispatcher/8082a530acf4b7d9da32d370d7a01ad4db020db4
+2023-04-17 01:20:02,808 - INFO : job: f281073cc15028a043418ca82ab5e87ce13d9f84 submit; job_id is 476233.node01
+2023-04-17 01:20:04,358 - INFO : job: f281073cc15028a043418ca82ab5e87ce13d9f84 476233.node01 finished
+2023-04-17 01:20:06,494 - INFO : info:check_all_finished: False
+2023-04-17 01:20:06,494 - INFO : remote path: /home/mkliu/test_dpdispatcher/d777273085da4517ed6bb786d917b2564a8687a9
+2023-04-17 01:20:07,587 - INFO : job: d167dc3157ef6af0d35e97f086b111bf73f59bd9 submit; job_id is 476234.node01
+2023-04-17 01:20:39,551 - INFO : job: d167dc3157ef6af0d35e97f086b111bf73f59bd9 476234.node01 finished
+2023-04-17 01:20:41,414 - INFO : info:check_all_finished: False
+2023-04-17 01:20:41,414 - INFO : remote path: /home/mkliu/test_dpdispatcher/4c5f37858c14624623ebfbefce08766422ed26e4
+2023-04-17 01:20:42,515 - INFO : job: 9e66c5bb6af0e3c72a46739873fa600efbfc1b6d submit; job_id is 476235.node01
+2023-04-17 01:20:44,053 - INFO : job: 9e66c5bb6af0e3c72a46739873fa600efbfc1b6d 476235.node01 finished

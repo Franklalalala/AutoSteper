@@ -1,0 +1,41 @@
+nohup: 忽略输入
+Current usenauty mode is: random
+start build:
+
+2023-04-17 13:18:43,517 - INFO : info:check_all_finished: False
+2023-04-17 13:18:43,544 - INFO : job: c6b28cb5b88c636183f7d4e249d879df9b1338e9 submit; job_id is 476252.node01
+2023-04-17 13:18:43,570 - INFO : job: 06c637d8683c0e89d1468cd8340b32b9a69e54fb submit; job_id is 476253.node01
+2023-04-17 13:18:43,595 - INFO : job: 3aaf0a45fcf58231b622e28b0719cc465e13d939 submit; job_id is 476254.node01
+2023-04-17 13:18:43,620 - INFO : job: 3c516a745bea6b9fb4abbf8afd5a56b1ca317056 submit; job_id is 476255.node01
+2023-04-17 13:18:43,646 - INFO : job: 4e9ded0f030af1aa75582a11848c993e819d955b submit; job_id is 476256.node01
+2023-04-17 13:18:43,671 - INFO : job: 916c676a626e43df72cfe0de55bc5bc8a1226771 submit; job_id is 476257.node01
+2023-04-17 13:18:43,696 - INFO : job: ef2e00804c2178faa16c4fe8a9933972bacfbb6e submit; job_id is 476258.node01
+2023-04-17 13:18:43,721 - INFO : job: 755e6b2ba02ae05eb1894880be4520f8292c5257 submit; job_id is 476259.node01
+2023-04-17 13:19:15,947 - INFO : job: ef2e00804c2178faa16c4fe8a9933972bacfbb6e 476258.node01 finished
+2023-04-17 13:19:15,969 - INFO : job: 755e6b2ba02ae05eb1894880be4520f8292c5257 476259.node01 finished
+2023-04-17 13:19:26,209 - INFO : job: 06c637d8683c0e89d1468cd8340b32b9a69e54fb 476253.node01 finished
+2023-04-17 13:19:26,276 - INFO : job: 4e9ded0f030af1aa75582a11848c993e819d955b 476256.node01 finished
+2023-04-17 13:19:26,299 - INFO : job: 916c676a626e43df72cfe0de55bc5bc8a1226771 476257.node01 finished
+2023-04-17 13:19:31,348 - INFO : job: 3aaf0a45fcf58231b622e28b0719cc465e13d939 476254.node01 finished
+2023-04-17 13:19:51,545 - INFO : job: c6b28cb5b88c636183f7d4e249d879df9b1338e9 476252.node01 finished
+2023-04-17 13:19:56,595 - INFO : job: 3c516a745bea6b9fb4abbf8afd5a56b1ca317056 476255.node01 finished
+Current usenauty mode is: random
+start build:
+
+2023-04-17 13:19:57,506 - INFO : info:check_all_finished: False
+2023-04-17 13:19:57,534 - INFO : job: b78991e5dfe7c56d1beb872d2199d9f27bce5b22 submit; job_id is 476260.node01
+2023-04-17 13:19:57,561 - INFO : job: 289a65e0f7a6618d8db8a74ea8f8f67ce2f15b38 submit; job_id is 476261.node01
+2023-04-17 13:19:57,586 - INFO : job: 6216f934af59c54f713839d4d2ab62fceb131850 submit; job_id is 476262.node01
+2023-04-17 13:19:57,613 - INFO : job: 871fb604f657ce24021022bee8bfd83a2326d32e submit; job_id is 476263.node01
+2023-04-17 13:19:57,639 - INFO : job: 267f6abfc9bacedfcbcbf834fab74ff9009ce569 submit; job_id is 476264.node01
+2023-04-17 13:19:57,665 - INFO : job: 52a486ffca615678ee76e22ef7ca81f3ede10aac submit; job_id is 476265.node01
+2023-04-17 13:19:57,691 - INFO : job: faeebc1657e80ad9a54b751bf845cf47be09fce1 submit; job_id is 476266.node01
+2023-04-17 13:19:57,716 - INFO : job: d0085f981892d47f37a33f5bad4c4dcde16fc817 submit; job_id is 476267.node01
+2023-04-17 13:22:13,836 - INFO : job: b78991e5dfe7c56d1beb872d2199d9f27bce5b22 476260.node01 finished
+2023-04-17 13:22:13,953 - INFO : job: d0085f981892d47f37a33f5bad4c4dcde16fc817 476267.node01 finished
+2023-04-17 13:22:39,366 - INFO : job: 289a65e0f7a6618d8db8a74ea8f8f67ce2f15b38 476261.node01 finished
+2023-04-17 13:22:39,388 - INFO : job: 6216f934af59c54f713839d4d2ab62fceb131850 476262.node01 finished
+2023-04-17 13:22:44,485 - INFO : job: faeebc1657e80ad9a54b751bf845cf47be09fce1 476266.node01 finished
+2023-04-17 13:22:49,514 - INFO : job: 52a486ffca615678ee76e22ef7ca81f3ede10aac 476265.node01 finished
+/home/mkliu/anaconda3/envs/molnet/AutoSteper/src/autosteper/optimizers.py:194: UserWarning: Something wrong happened while optimizing isomers in /home/mkliu/dummy_test_floder/autosteper_test_4_15/random/C60/24addons/cooking.The simulation continues.
+  warnings.warn(f'Something wrong happened while optimizing isomers in {self.path_cooking}.'
