@@ -44,3 +44,12 @@ para = {
 for a_rank in get_low_e_ranks(e_arr=e_arr, para=para):
     print(a_rank)
 assert a_rank + 1 == 5
+
+################################ reverse cutoff for black list ###############################################
+para = {
+    'mode': 'rank',
+    'rank': 2,
+}
+for a_rank in get_low_e_ranks(e_arr=e_arr, para=para, is_reverse=True):
+    print(a_rank)
+assert len(e_arr) - para['rank'] == a_rank

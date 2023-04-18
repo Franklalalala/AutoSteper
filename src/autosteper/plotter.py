@@ -235,7 +235,7 @@ class FullereneDataParser_Plotter():
                       pentagon_color="orange", pentagon_transparency=0.5,
                       sphere_ratio=0.8, parr_ratio=0.4, addon_color: str = None, addon_label_size: int = 200,
                       group_symbol: str = None, show_addon_nums: bool = False, addon_nums_rotation: int = 0,
-                      dpi=400):
+                      dpi=400, fontsize: int=10):
         """
 
         Args:
@@ -245,6 +245,9 @@ class FullereneDataParser_Plotter():
         """
         cwd_swr = os.getcwd()
         src_swr_root = os.path.abspath(src_swr_root)
+        if len(os.listdir(src_swr_root)) == 0:
+            print(f'There are no swr reported in {os.getcwd()}')
+            return
         a_folder = os.listdir(src_swr_root)[0]
         os.chdir(src_swr_root)
         os.chdir(a_folder)

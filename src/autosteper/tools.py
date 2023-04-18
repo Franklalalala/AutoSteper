@@ -617,7 +617,7 @@ def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
     swr_container: List that contains the SWR positions,
     first element corresponds to the queried graph, second for the target graph.
     """
-    Print('You have entered a SWR match program, this may take a few minutes, take a break for coffee please.')
+    print('You have entered a SWR match program, this may take a few minutes, take a break for coffee please.')
     q_G = get_G(q_atoms)
     tgt_G = get_G(tgt_atoms)
     swr_container = []
@@ -640,8 +640,8 @@ def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
 
 
 def match_swr_cages(query_cage: Atoms, target_cage: Atoms):
-    # swr = map_SWR(q_atoms=query_cage, tgt_atoms=target_cage)
-    swr = [[29, 31], [54, 55]] # for test
+    swr = map_SWR(q_atoms=query_cage, tgt_atoms=target_cage)
+    # swr = [[29, 31], [54, 55]] # for test
     query_G = get_G(query_cage)
     dummy_query_G = query_G.copy()
     dummy_query_G.remove_nodes_from(swr[0])
