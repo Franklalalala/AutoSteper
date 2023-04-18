@@ -21,9 +21,10 @@ dependencies = [
 	"pandas",
 	"networkx",
 	"tqdm",
-	"matplotlib",
+	"matplotlib>=3.6.0",
 	"seaborn",
 	"dpdispatcher", 
+	"openpyxl", 
 ]
 
 [tool.setuptools]

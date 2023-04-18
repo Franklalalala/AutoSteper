@@ -131,6 +131,7 @@ class Optimizer():
         passed_info = info.sort_values(by='energy')
         passed_info.index = sorted(passed_info.index)
         passed_info.to_pickle(path='passed_info.pickle')
+        passed_info[:1000].to_excel('passed_info.xlsx')
         status_info = pd.DataFrame(dict(zip(self.names, [[i] for i in self.status_codes])))
         status_info.to_pickle('status_info.pickle')
 
@@ -165,6 +166,7 @@ class Optimizer():
             sorted_info = info.sort_values(by='energy')
             sorted_info.index = sorted(sorted_info.index)
             sorted_info.to_pickle(path='passed_info.pickle')
+            sorted_info[:1000].to_excel('passed_info.xlsx')
             old_status_info = pd.read_pickle('status_info.pickle')
             for i_code, a_code in enumerate(self.status_codes):
                 if a_code != -2:

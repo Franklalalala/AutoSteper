@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Union
 
 import networkx as nx
 import numpy as np
@@ -9,7 +10,7 @@ from ase.io import write, read
 from ase.io.gaussian import read_gaussian_out
 from ase.neighborlist import build_neighbor_list
 from ase.units import Hartree
-from networkx import isomorphism
+from networkx import isomorphism, Graph
 from numpy import sin, cos
 
 
@@ -62,64 +63,75 @@ def get_last_from_log(log_path: str):
     return e, last_image
 
 
-def sort_atomic(atoms: Atoms):
-    cage = Atoms()
-    addends = Atoms()
-    for an_atom in atoms:
-        if an_atom.symbol == 'C':
-            cage.append(an_atom)
+def sort_complex_group(atoms: Atoms):
+    sorted_atoms = Atoms()
+    cage_idx_list = []
+    old_addons_list = []
+    neighborList = build_neighbor_list(atoms, bothways=True, self_interaction=False)
+    dok_matrix = neighborList.get_connectivity_matrix()
+    for idx, an_atom in enumerate(atoms):
+        if not an_atom.symbol == 'C':
+            continue
+        flag = 0
+        dok_adj = dok_matrix[idx]
+        adj_array = dok_adj.tocoo().col
+        for a_ngr in adj_array:
+            if atoms[a_ngr].symbol != 'C':
+                flag = 1
+            else:
+                carbon_ngr_idx = a_ngr
+        if flag == 0:
+            cage_idx_list.append(idx)
         else:
-            addends.append(an_atom)
-    pristine_cage = cage.copy()
-    cage.extend(addends)
-    return pristine_cage, cage
+            old_addons_list.append(carbon_ngr_idx)
+    new_addons_set = set()
+    cage_size_count = 0
+    for idx, an_atom in enumerate(atoms):
+        if idx in old_addons_list:
+            new_addons_set.add(cage_size_count)
+        if idx in cage_idx_list:
+            sorted_atoms.append(an_atom)
+            cage_size_count = cage_size_count + 1
+    for idx, an_atom in enumerate(atoms):
+        if not idx in cage_idx_list:
+            sorted_atoms.append(an_atom)
+    return sorted_atoms, cage_size_count, new_addons_set
 
 
-# CAUTION!!! Pristine cage needs to be in the top position of coordinates.
-def deal_group(atoms: Atoms, group: str, cage_size: int):
-    new_atoms = Atoms()
-    pristine_cage = atoms[:cage_size]
-    if group == 'OH':
-        for an_atom in atoms:
-            if an_atom.symbol != 'H':
-                new_atoms.append(an_atom)
-    else:
-        new_atoms = pristine_cage.copy()
-        for an_atom in atoms[cage_size:]:
-            if an_atom.symbol == 'C':
-                an_atom.symbol = 'H'
-                new_atoms.append(an_atom)
-    return pristine_cage, new_atoms
+def sort_simple_group(atoms: Atoms):
+    sorted_atoms = Atoms()
+    new_addons_set = set()
+    neighborList = build_neighbor_list(atoms, bothways=True, self_interaction=False)
+    dok_matrix = neighborList.get_connectivity_matrix()
+    cage_size_count = 0
+    for idx, an_atom in enumerate(atoms):
+        if not an_atom.symbol == 'C':
+            continue
+        sorted_atoms.append(an_atom)
+        dok_adj = dok_matrix[idx]
+        adj_array = dok_adj.tocoo().col
+        for a_ngr in adj_array:
+            if atoms[a_ngr].symbol != 'C':
+                new_addons_set.add(cage_size_count)
+        cage_size_count = cage_size_count + 1
+    for an_atom in atoms:
+        if an_atom.symbol != 'C':
+            sorted_atoms.append(an_atom)
+    return sorted_atoms, cage_size_count, new_addons_set
 
 
-def strip_extraFullerene(atoms: Atoms, group: str = None, cage_size: int = None):
-    if group:
-        pristine_cage, atoms = deal_group(atoms=atoms, group=group, cage_size=cage_size)
-    else:
-        pristine_cage, atoms = sort_atomic(atoms=atoms)
+def strip_extraFullerene(atoms: Atoms = None, coord_file_path: str = None, group: str = None):
+    if coord_file_path:
+        atoms = read(coord_file_path)
+    elif not atoms:
+        raise RuntimeError('Please input geometry-containing file, or input an ASE Atoms object.')
+
     if group in ['CH3', 'CF3']:
-        cutoffs = [natural_cutoffs(pristine_cage)[0]] * len(atoms)
-        neighborlist = NeighborList(cutoffs, skin=0.15, bothways=True, self_interaction=False)
+        sorted_atoms, cage_size, addon_set = sort_complex_group(atoms=atoms)
+        return sorted_atoms[:cage_size], addon_set
     else:
-        neighborlist = build_neighbor_list(atoms=atoms, skin=0.15, bothways=True, self_interaction=False)
-    dok_matrix = neighborlist.get_connectivity_matrix()
-    bonds = np.array([*dok_matrix.keys()])
-    map_dict = dict()
-    for i in range(bonds.shape[0]):
-        bond = bonds[i]
-        symbol_0 = atoms[bond[0]].symbol
-        symbol_1 = atoms[bond[1]].symbol
-        if not symbol_0 == symbol_1:
-            if bond[0] < bond[1]:
-                if symbol_0 == 'C':
-                    cage_element_idx = bond[0]
-                    addon_idx = bond[1]
-                else:
-                    cage_element_idx = bond[1]
-                    addon_idx = bond[0]
-                map_dict.update({addon_idx: cage_element_idx})
-    addon_set = set(map_dict.values())
-    return pristine_cage, addon_set
+        sorted_atoms, cage_size, addon_set = sort_simple_group(atoms=atoms)
+        return sorted_atoms[:cage_size], addon_set
 
 
 # e_arr needs to be sorted
@@ -129,7 +141,8 @@ def get_low_e_ranks(e_arr: np.ndarray, para: dict, is_reverse: bool = False):
     assert para['mode'] in ['None', 'rank', 'value',
                             'value_and_rank', 'rank_and_value',
                             'value_or_rank', 'rank_or_value'], f'Please check your run cutoff mode keyword.'
-    assert isinstance(e_arr, np.ndarray) == True
+    if not isinstance(e_arr, np.ndarray):
+        e_arr = np.array(e_arr)
 
     if para['mode'] == 'None':
         rank_list = range(len(e_arr))
@@ -203,6 +216,181 @@ def get_G(atoms: Atoms):
     return G
 
 
+def rm_addons_from_G(G: Graph, rm_addon_sites: Union[list, set]):
+    for a_rm_addon_site in rm_addon_sites:
+        for a_ngb in G[a_rm_addon_site]:
+            if len(G[a_ngb]) < 3:
+                G.remove_node(a_ngb)
+                break
+    return G
+
+
+def rm_addons_from_atoms(src_atoms: Atoms, rm_site_list: Union[list, set], group: str=None):
+    rm_atoms_idx_list = []
+    neighborList = build_neighbor_list(src_atoms, bothways=True, self_interaction=False)
+    dok_matrix = neighborList.get_connectivity_matrix()
+    non_C_count = 0
+    if group in ['CH3', 'CF3']:
+        for an_atom in src_atoms:
+            if an_atom.symbol != 'C':
+                non_C_count = non_C_count + 1
+        cage_size = len(src_atoms) - non_C_count / 3 * 4
+    for a_site in rm_site_list:
+        dok_adj = dok_matrix[a_site]
+        adj_array = dok_adj.tocoo().col
+        for a_ngr in adj_array:
+            if group in ['CH3', 'CF3']:
+                if a_ngr >= cage_size:
+                    break
+            else:
+                if src_atoms[a_ngr].symbol != 'C':
+                    break
+        rm_atoms_idx_list.append(a_ngr)
+        if group in ['OH', 'CH3', 'CF3']:
+            dok_adj = dok_matrix[a_ngr]
+            adj_array = dok_adj.tocoo().col
+            for a_ngr_ngr in adj_array:
+                if src_atoms[a_ngr_ngr].symbol != 'C':
+                    rm_atoms_idx_list.append(a_ngr_ngr)
+    removed_atoms = Atoms()
+    for idx, an_atom in enumerate(src_atoms):
+        if not idx in rm_atoms_idx_list:
+            removed_atoms.append(an_atom)
+    return removed_atoms
+
+
+def get_a_seq(all_sites: Union[list, set], tgt_seq_len: int, tgt_seq: set = None):
+    if type(all_sites) == list:
+        all_sites = set(all_sites)
+    if tgt_seq is None:
+        tgt_seq = set()
+    if len(tgt_seq) == tgt_seq_len:
+        yield tgt_seq
+    else:
+        for i in all_sites - tgt_seq:
+            tgt_seq.add(i)
+            for a_seq in get_a_seq(all_sites=all_sites, tgt_seq_len=tgt_seq_len, tgt_seq=tgt_seq):
+                if len(a_seq) == tgt_seq_len:
+                    yield a_seq
+            tgt_seq.remove(i)
+
+def get_max_adduct_filename(root: str):
+    max_add = 0
+    max_filename = str()
+    for a_file in os.listdir(root):
+        if a_file.endswith('xyz'):
+            if 'addons' in a_file.split('_'):
+                an_add = int(a_file.split('_')[0])
+                if max_add < an_add:
+                    max_add = an_add
+                    max_filename = a_file
+    return max_filename
+
+
+def re_label_a_pathway(src_root: str, re_label_root: str, group_symbol: str, has_header: bool = True):
+    def _get_re_label_filename(addon_set, has_header):
+        if has_header:
+            re_label = f'{len(addon_set)}_addons_' + \
+                       '_'.join([str(x + 1) for x in sorted(list(addon_set))]) + '.xyz'
+        else:
+            re_label = '_'.join([str(x + 1) for x in sorted(list(addon_set))]) + '.xyz'
+        return re_label
+    cwd_re_label = os.getcwd()
+    re_label_root = os.path.abspath(re_label_root)
+    add_list = []
+    add_atoms_map = {}
+    os.chdir(src_root)
+    for a_file in os.listdir('./'):
+        if a_file.endswith('xyz'):
+            an_add = int(a_file.split('_')[0])
+            add_list.append(an_add)
+            add_atoms_map.update({an_add: read(a_file)})
+    add_list.sort()
+    max_adduct = add_atoms_map[add_list[-1]]
+    pristine_cage, max_addon_set = strip_extraFullerene(atoms=max_adduct, group=group_symbol)
+    os.chdir(re_label_root)
+    write(filename=r'pristine_cage.xyz', images=pristine_cage, format='xyz',
+          comment=r'This file is for visualization only.')
+    re_label = _get_re_label_filename(addon_set=max_addon_set, has_header=has_header)
+    write(filename=re_label, images=max_adduct, format='xyz')
+    prev_G = get_G(max_adduct)
+    prev_add_set = max_addon_set
+    prev_atoms = max_adduct.copy()
+    for nxt_add in add_list[-2::-1]:
+        nxt_atoms = add_atoms_map[nxt_add]
+        nxt_G = get_G(nxt_atoms)
+        _, nxt_add_set = strip_extraFullerene(atoms=nxt_atoms, group=group_symbol)
+        diff_add_set = prev_add_set - nxt_add_set
+        diff_len = len(prev_add_set) - len(nxt_add_set)
+        # in case the addon set matches directly
+        if len(diff_add_set) == diff_len:
+            prev_add_set = nxt_add_set
+            prev_G = nxt_G
+            prev_atoms = rm_addons_from_atoms(src_atoms=prev_atoms, rm_site_list=diff_add_set, group=group_symbol)
+            re_label = _get_re_label_filename(addon_set=nxt_add_set, has_header=has_header)
+            write(filename=re_label, images=prev_atoms.copy(), format='xyz',
+                  comment=r'This file is for visualization only.')
+            add_atoms_map.update({len(prev_add_set): prev_atoms.copy()})
+        else:  # in case the addon set does not match directly
+            for a_seq in get_a_seq(all_sites=prev_add_set, tgt_seq_len=diff_len):
+                removed_G = rm_addons_from_G(G=prev_G.copy(), rm_addon_sites=a_seq)
+                GM = isomorphism.GraphMatcher(removed_G, nxt_G)
+                if GM.is_isomorphic():
+                    prev_add_set = prev_add_set - a_seq
+                    prev_G = removed_G
+                    prev_atoms = rm_addons_from_atoms(src_atoms=prev_atoms, rm_site_list=a_seq, group=group_symbol)
+                    re_label = _get_re_label_filename(addon_set=prev_add_set, has_header=has_header)
+                    write(filename=re_label, images=prev_atoms.copy(), format='xyz',
+                          comment=r'This file is for visualization only.')
+                    add_atoms_map.update({len(prev_add_set): prev_atoms.copy()})
+                    break
+    write(filename='traj.log', images=pristine_cage, format='xyz',
+          comment=r'This file is for visualization only.')
+    for an_add in add_list:
+        write(filename='traj.log', images=add_atoms_map[an_add], format='xyz', append=True)
+    os.chdir(cwd_re_label)
+
+
+def match_max_adduct(query_atoms_path: str, tgt_atoms_path: str, diff_len: int, group_symbol: str):
+    query_atoms = read(query_atoms_path)
+    tgt_atoms = read(tgt_atoms_path)
+    query_G = get_G(query_atoms)
+    tgt_G = get_G(tgt_atoms)
+    # files need to be sorted first, carbon atoms of cage should stay on top of coordinates.
+    _, tgt_addon_set = strip_extraFullerene(atoms=tgt_atoms, group=group_symbol)
+    pristine_cage, query_addon_set = strip_extraFullerene(atoms=query_atoms, group=group_symbol)
+    # ablation of target atoms to match the query atom
+    for a_seq in get_a_seq(all_sites=tgt_addon_set, tgt_seq_len=diff_len):
+        removed_G = rm_addons_from_G(G=tgt_G.copy(), rm_addon_sites=a_seq)
+        GM = isomorphism.GraphMatcher(query_G, removed_G)
+        if GM.subgraph_is_isomorphic():
+            half_G = removed_G
+            half_matched_atoms = rm_addons_from_atoms(src_atoms=tgt_atoms, rm_site_list=a_seq)
+            break
+    dummy_all_adduct_set = set(range(len(query_atoms)))
+    dummy_all_cage_set = set(range(len(pristine_cage)))
+    append_nodes_list = list(dummy_all_adduct_set - set(half_G.nodes))
+    # re-build half-matched graph to match the query atom
+    for a_seq in get_a_seq(all_sites=dummy_all_cage_set - tgt_addon_set, tgt_seq_len=diff_len):
+        for idx, an_addon in enumerate(a_seq):
+            half_G.add_node(append_nodes_list[idx])
+            half_G.add_edge(an_addon, append_nodes_list[idx], weight=1)
+        GM = isomorphism.GraphMatcher(query_G, half_G)
+        if GM.is_isomorphic():
+            match_map = next(GM.match())
+            re_matched_atoms = Atoms()
+            for a_tgt_idx in range(len(dummy_all_adduct_set)):
+                for idx, a_query_atom in enumerate(query_atoms):
+                    mapped_idx = match_map[idx]
+                    if mapped_idx == a_tgt_idx:
+                        re_matched_atoms.append(a_query_atom)
+            break
+        else:
+            for an_addon in a_seq:
+                half_G.remove_node(an_addon)
+    return half_matched_atoms, re_matched_atoms
+
+
 def lazy_file_mid_name(file_mid_name: str = None):
     if file_mid_name != None:
         file_mid_name = '_' + file_mid_name + '_'
@@ -212,8 +400,7 @@ def lazy_file_mid_name(file_mid_name: str = None):
 
 
 def simple_parse_logs(dump_root: str, src_root: str, mode: str,
-                      group: str = None, cage_size: int = None,
-                      file_mid_name: str = None):
+                      group: str = None, file_mid_name: str = None):
     """
     Turn disordered output logs to standard infos, xyz and logs.
 
@@ -222,7 +409,6 @@ def simple_parse_logs(dump_root: str, src_root: str, mode: str,
     src_root: path of the original root
     mode: 'gauss' for gaussian format log, 'xyz' for xyz format log.
     group: in case the group have more than one atom
-    cage_size: combined usage for strip_extraFullerene
     """
     cwd_ = os.getcwd()
     os.makedirs(dump_root, exist_ok=True)
@@ -253,7 +439,7 @@ def simple_parse_logs(dump_root: str, src_root: str, mode: str,
             except Exception as e:
                 raise RuntimeError(f'Error: {str(e)}\nPlease check the xyz format log file.')
 
-        _, addon_set = strip_extraFullerene(atoms=atoms, group=group, cage_size=cage_size)
+        _, addon_set = strip_extraFullerene(atoms=atoms, group=group)
         add_num = len(addon_set)
 
         if add_num not in e_map.keys():
@@ -355,7 +541,7 @@ def simple_dump_pathway(pathway_info_path: str, dump_root: str, src_xyz_root: st
     src_xyz_root = os.path.abspath(src_xyz_root)
     for idx, a_pathway in enumerate(pathway_info['name'][:top_K]):
         a_sub_dump = os.path.join(dump_root, f'path_rank_{idx + 1}')
-        os.makedirs(a_sub_dump)
+        os.makedirs(a_sub_dump, exist_ok=True)
         os.chdir(src_xyz_root)
         for a_name in a_pathway:
             shutil.copy(src=a_name, dst=os.path.join(a_sub_dump, a_name))
@@ -418,9 +604,11 @@ def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_p
     info = info.sort_values(by='e_area')
     info.index = sorted(info.index)
     info.to_pickle(path=dump_info_path)
+    info[:1000].to_excel(dump_info_path[:-6]+'xlsx')
     os.chdir(cwd_)
 
 
+# To do: a better way to get swr maps
 def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
     """
     Currently only support single SWR scenario.
@@ -429,6 +617,7 @@ def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
     swr_container: List that contains the SWR positions,
     first element corresponds to the queried graph, second for the target graph.
     """
+    Print('You have entered a SWR match program, this may take a few minutes, take a break for coffee please.')
     q_G = get_G(q_atoms)
     tgt_G = get_G(tgt_atoms)
     swr_container = []
@@ -448,3 +637,31 @@ def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
                 if nx.is_isomorphic(dummy_tgt_G, dummy_q_G):
                     swr_container.append([ii, jj])
                     return swr_container
+
+
+def match_swr_cages(query_cage: Atoms, target_cage: Atoms):
+    # swr = map_SWR(q_atoms=query_cage, tgt_atoms=target_cage)
+    swr = [[29, 31], [54, 55]] # for test
+    query_G = get_G(query_cage)
+    dummy_query_G = query_G.copy()
+    dummy_query_G.remove_nodes_from(swr[0])
+
+    target_G = get_G(target_cage)
+    dummy_target_G = target_G.copy()
+    dummy_target_G.remove_nodes_from(swr[1])
+
+    GM = isomorphism.GraphMatcher(dummy_query_G, dummy_target_G)
+    match_map = next(GM.match())
+    new_query_cage = Atoms()
+    flag = 0
+    for a_tgt_idx in range(len(query_cage)):
+        if not a_tgt_idx in match_map.values():
+            new_query_cage.append(query_cage[swr[0][flag]])
+            flag = 1
+        for a_q_idx, a_query_atom in enumerate(query_cage):
+            if not a_q_idx in match_map.keys():
+                continue
+            mapped_idx = match_map[a_q_idx]
+            if mapped_idx == a_tgt_idx:
+                new_query_cage.append(a_query_atom)
+    return new_query_cage, match_map, swr[1]
