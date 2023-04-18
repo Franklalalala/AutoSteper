@@ -1,6 +1,12 @@
 Simulation Modules
 ==================
 
+
+.. note::
+
+   The ``Plot with FullereneDataParser`` section may help you properly visualize simulation results.
+ 
+
 AutoSteper provides a fully automated fashion to simulate stepwise
 chemical reactions. That contains on-the-fly building, optimizing, and
 checking. Additionally, a light-weight pathway search algorithm is built
@@ -90,8 +96,12 @@ Here is one of the typical input script:
    auto = AutoSteper(para=para)
    auto.run()
 
+An example could be found in
+`test_step <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/simulation_modes/test_step>`__.
+
 Parameters and folder system
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 The ``resrc_para`` and ``mach_para`` are designed to configure a
 suitable environment for optimizers. (see optimizer module) After that,
@@ -207,6 +217,8 @@ Fig 4. Example of the passed_info.
 
    </center>
 
+-  ``passed_info.xlsx``: excel format of ``passed_info.pickle``, up to
+   1000 items stored.
 -  ``parent_info.pickle``: key information of the **parent-son**
    relationships generated during the growth simulation. In the early
    version of AutoSteper, this file is called ``flat_yes_info.pickle``,
@@ -281,6 +293,11 @@ Fig 7. Example of the status_info.
 
    </center>
 
+An example about the co-occurrences of ``failed`` and ``wrong`` could be
+found in
+`test_random <https://github.com/Franklalalala/AutoSteper/blob/5763497ea281374ad517abff9a2e1903988b0664/gym/simulation/simulation_modes/test_random/test_random.py#L6>`__.
+This module helps to maintain stable operation of the entire program.
+
 The directory of the **proceeding addition stages** is illustrated in
 Fig 8. The difference compared with the first step is presented below:
 
@@ -334,11 +351,11 @@ tens of thousands of isomers to be screened. We cannot estimate the
 sparsity of low-energy isomers beforehand. We can only set an upper
 limit base on our computational resources. That is, by default, 200. If
 one has 5 times computational resources, this figure could be toggled to
-1000. It’s adjustable.
+1000. It’s **adjustable**.
 
 On the other hand, from a chemical view, one needs to set this cutoff
 with a soft criterion, ``value``. This figure is by default 1eV, and
-it’s adjustable.
+it’s **adjustable**.
 
 AutoSteper provides 4 modes to control the cutoff process:
 
@@ -350,11 +367,15 @@ AutoSteper provides 4 modes to control the cutoff process:
    cutoffs is sufficient.
 
 By default, AutoSteper utilizes the ``rank_and_value`` mode, for
-``rank``\ =200, ``value``\ =1eV. See
-`code <https://github.com/Franklalalala/AutoSteper/blob/773de279226b089141e580901894531e9dba70bd/src/autosteper/autosteper.py#L30>`__.
+``rank``\ =200, ``value``\ =1eV. **This is adjustable.** **One may apply
+any of the modes with any favored number.** See
+`code <https://github.com/Franklalalala/AutoSteper/blob/773de279226b089141e580901894531e9dba70bd/src/autosteper/autosteper.py#L30>`__
+and
+`test <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/cutoff>`__.
 
-**This is adjustable.** One may apply any of the modes with any favored
-number.
+A simple application of this function is to extract low-energy isomers
+from an information pickle file, see
+`get_low_e_xyz.py <https://github.com/Franklalalala/AutoSteper/blob/master/gym/simulation/cutoff/get_low_e_xyz.py>`__.
 
 random
 ~~~~~~
@@ -379,7 +400,7 @@ Differences lie in the ``run_para``, which is replaced by
 
 Despite these parameters, the execution method of AutoSteper changed
 from ``run`` to ``random``. For an example script, see
-`AutoSteper/test_random.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_random/test_random.py>`__.
+`test_random <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/simulation_modes/test_random>`__.
 
 base
 ~~~~
@@ -390,7 +411,7 @@ the first step in the step mode. Since the base mode has only one step,
 its input script doesn’t need ``run_para``. The rest of the parameters
 stay the same as above. The execution method of AutoSteper changed from
 ``run`` to ``base``. For an example script, see
-`AutoSteper/test_base.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_base/test_base.py>`__.
+`test_base <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/simulation_modes/test_base>`__.
 
 Generator
 ---------
@@ -417,7 +438,7 @@ parameters are presented below:
 
 Note that, the generator module could be used alone to build hand-tuned
 structures. See
-`AutoSteper/test_build_unit.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_build_unit/test_build_unit.py>`__.
+`build_unit <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/build_unit>`__.
 
 Optimizer
 ---------
@@ -539,17 +560,11 @@ opt mode and parameter
 Currently, AutoSteper provides interfaces for 3 software, namely, the
 `xTB <https://xtb-docs.readthedocs.io/en/latest/contents.html>`__
 program, the `Gaussian <https://gaussian.com/>`__ software, and the
-`ASE <https://wiki.fysik.dtu.dk/ase/about.html>`__ python library.
-Examples could be found in
-`test_ASE_Optimizer <https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_ASE_Optimizer>`__,
-`test_Gaussian_Optimizer <https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_Gaussian_Optimizer>`__,
-and
-`test_XTB_Optimizer <https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_XTB_Optimizer>`__.
-
-In addition, AutoSteper provides the ``Multi_Optimizer`` to properly
+`ASE <https://wiki.fysik.dtu.dk/ase/about.html>`__ python library. In
+addition, AutoSteper provides the ``Multi_Optimizer`` to properly
 integrate different software or employ the same software repeatly.
 Examples could be found in
-`test_multi_optimizer <https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_multi_optimizer>`__.
+`optimizers <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/optimizers>`__.
 
 The details about related parameters are presented below:
 
@@ -596,7 +611,7 @@ see ``Analysis Functions`` section.
 Need to mention that, the AutoSteper module doesn’t need any specific
 input parameters for the checker module, though it could also be used
 alone. See
-`AutoSteper/test_checker.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_checker/test_checker.py>`__.
+`checker <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/checker>`__.
 
 Path parser
 -----------
@@ -631,17 +646,13 @@ This configuration parses pathways for the specific ``q_isomer_rank``.
 All the pathways end to the
 :math:`\rm C_{2n}X_{m}\_i, i=q\_isomer\_rank`.
 
-To see a mixed scenario, simply set the ``is_mixed`` flag to True. See
-`AutoSteper/test_path_parser_2.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_path_parser/test_path_parser_2.py>`__.
-The generated pathways will end to
+To see a mixed scenario, simply set the ``is_mixed`` flag to True. The
+generated pathways will end to
 :math:`\rm C_{2n}X_{m}\_i, i<=q\_isomer\_rank`.
 
 If one needs a higher accuracy of pathways, there is a refiner option in
-``Path_Parser``. See
-`AutoSteper/test_path_parser_2_ref.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_path_parser/test_path_parser_2_ref.py>`__.
-
-If one needs to control the number of pathways, set a ``ctl_path_para``
-as below:
+``Path_Parser``. If one needs to control the number of pathways, set a
+``ctl_path_para`` as below:
 
 .. code:: python
 
@@ -663,8 +674,9 @@ the ``Path_Parser`` functions in a DFS way, the low-energy pathways will
 be well preserved.
 
 The generated pathways are highly structured and informative, see
-`AutoSteper/test_path_parser <https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_path_parser>`__.
-Here presents the well-designed heatmap. See Fig 12.
+`path_parser <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/path_parser>`__.
+Here presents the well-designed heatmap. See Fig 12. This is the pathway
+for :math:`\rm C_{60}Cl_6` under xTB level of theory.
 
 .. image:: ./fig/Path_relative_energy.png
    :alt: Path_relative_energy
@@ -742,7 +754,7 @@ system will shut down after ``final_chk``.
 
 To enable the blacklist feature, one needs to provide a ``blk_para``.
 Here is an example of ``blk_para``, for example of an input script, see
-`AutoSteper/test_blk_list.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_black_list/test_blk_list.py>`__
+`black_list <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/black_list>`__.
 
 .. code:: python
 
@@ -761,7 +773,7 @@ Note that, all failed addition patterns are collected by default as long
 as the blacklist system functions. Another kind of high-energy isomers
 is collected when the ``clct_unstb`` is Ture. The ``unstb_para``
 controls the reversed cutoff range, details see
-`AutoSteper/test_cutoff.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_cutoff/test_cutoff.py>`__.
+`test_cutoff <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/cutoff>`__.
 
 Pre-scan
 --------
@@ -797,7 +809,7 @@ Fig 15. The workbase when the pre-scan feature enabled.
 To enable a pre-scan feature, one needs to provide a ``pre_scan_para``.
 Here is an example of ``pre_scan_para``, for example of an input script,
 see
-`AutoSteper/test_pre_scan.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_pre_scan_restart/test_pre_scan.py>`__.
+`test_pre_scan <https://github.com/Franklalalala/AutoSteper/blob/master/gym/simulation/pre_scan_restart/test_pre_scan.py>`__.
 
 .. code:: python
 
@@ -846,7 +858,8 @@ was interrupted.
 
 Besides, this feature could be used to **proceed** with a normally
 terminated simulation. For example, the original one terminated in
-``add_num = 4``, and the restart_add_num could be set as ``4+step``.
+``add_num = 4``, and the restart_add_num could be set as ``4+step``. See
+`test_restart <https://github.com/Franklalalala/AutoSteper/blob/master/gym/simulation/pre_scan_restart/test_restart.py>`__.
 
 error handling
 ~~~~~~~~~~~~~~
@@ -872,3 +885,6 @@ There are 4 modes in total. Specifically:
 -  ``Ignore``: designed for ``random`` mode in case there are abnormally
    terminated jobs. There will be warnings while the simulation
    proceeds.
+
+Examples about how this feature function is presented in
+`test_random <https://github.com/Franklalalala/AutoSteper/blob/5763497ea281374ad517abff9a2e1903988b0664/gym/simulation/simulation_modes/test_random/test_random.py#L6>`__.

@@ -1,6 +1,11 @@
 Analysis Functions
 ==================
 
+.. note::
+
+   The ``Plot with FullereneDataParser`` section may help you properly visualize analysis results.
+
+
 AutoSteper provides multiple functions to perform post-analysis. Here
 presents a brief introduction.
 
@@ -18,14 +23,14 @@ parameters are needed to perform a refinement procedure. That is:
 
 That’s it. AutoSteper will refine the original data and dump them into
 the new workbase. For details, see
-`AutoSteper/test_refine.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_ref/test_refine.py>`__.
+`test_refine.py <https://github.com/Franklalalala/AutoSteper/blob/master/gym/analysis/refine/test_refine.py>`__.
 
 Isomorphism test
 ----------------
 
 AutoSteper provides 3 functions to perform the isomorphism test. For
 example, see
-`AutoSteper/test_iso_relatives.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_iso_relatives/test_iso_relatives.py>`__.
+`isomorphism <https://github.com/Franklalalala/AutoSteper/tree/master/gym/analysis/isomorphism>`__.
 
 Details are presented below:
 
@@ -209,10 +214,10 @@ One needs to provide following parameters:
    type key word ``gauss``. 2. the xyz format, type key word ``xyz``.
 
 For an example, see
-`AutoSteper/test_cook_disordered.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_cook_disordered/test_cook_disordered.py>`__.
+`cook_disordered <https://github.com/Franklalalala/AutoSteper/tree/master/gym/analysis/cook_disordered>`__.
 
 On the bases of structured information, one can easily perform
-topological analysis. See ``find_SWR`` and ``get_binding_e`` in below.
+topological analysis. See ``find_SWR`` and ``get_binding_e`` below.
 
 SWR analysis
 ------------
@@ -261,11 +266,45 @@ Details about the output are presented below:
    is ``False``), the ``1`` in ``tgt_atoms_rank_1.xyz`` means the energy
    rank of target atom.
 
-For an example, see
-`AutoSteper/test_find_SWR <https://github.com/Franklalalala/AutoSteper/tree/master/tests/test_find_SWR>`__.
+For an example, see `SWR
+example <https://github.com/Franklalalala/AutoSteper/tree/master/gym/analysis/SWR>`__.
 
 Count SWR
 ~~~~~~~~~
+
+Considering that the SWR output workbase is too tricky to be summarized,
+here we present a count function to gain an overview of the interplay
+between the two systems. See `SWR
+example <https://github.com/Franklalalala/AutoSteper/tree/master/gym/analysis/SWR>`__.
+
+One needs to provide the following parameters:
+
+-  ``swr_1_legend``: legend of the ``swr_1``
+-  ``swr_2_legend``: legend of the ``swr_2``
+-  ``swr_1_workbase``: output of ``find_SWR``
+-  ``swr_2_workbase``: same
+-  ``dump_pic_path``: absolute path to the final picture.
+
+Here is an example of an SWR count. It compares the SWRs between
+:math:`\rm ^{\#11}C_{84}Cl_x` and :math:`\rm ^{\#12}C_{84}Cl_x`. For
+example, in x=2 stage, there are 5 SWRs detected from
+:math:`\rm ^{\#11}C_{84}Cl_2` to :math:`\rm ^{\#12}C_{84}Cl_4`, while
+only one SWRs detected from :math:`\rm ^{\#12}C_{84}Cl_2` to
+:math:`\rm ^{\#11}C_{84}Cl_4`.
+
+.. image:: ./fig/swr_count_result.png
+   :alt: swr_count
+   :align: center
+
+.. raw:: html
+
+   <center>
+
+Fig 4. Illustration of SWR counts.
+
+.. raw:: html
+
+   </center>
 
 Collect failed
 --------------
@@ -295,14 +334,15 @@ with :math:`\rm C_{60}Br_x` systems, 50 isomers for x = 3, 6, 9, 12, 15,
 
    <center>
 
-Fig 3. Distribution of failed jobs for a random simulation.
+Fig 4. Distribution of failed jobs for a random simulation.
 
 .. raw:: html
 
    </center>
 
 The legend on the upper left denotes the types of failed jobs. They are
-corresponding to the 7 rules mentioned in the previous section.
+corresponding to the 7 rules mentioned in the previous section. See
+`clc_failed <https://github.com/Franklalalala/AutoSteper/tree/master/gym/analysis/clc_failed>`__.
 
 Binding energy analysis
 -----------------------
@@ -329,7 +369,5 @@ Note that, the ``cage_e`` and ``addends_e`` need to be calculated under
 the same computational level as the general isomers.
 
 The output of this function is dumped into the ``sorted_root/info/``, in
-the format of ``pickle`` and ``xlsx``.
-
-For an example, see
-`AutoSteper/test_binding_e.py <https://github.com/Franklalalala/AutoSteper/blob/master/tests/test_binding_e/test_binding_e.py>`__.
+the format of ``pickle`` and ``xlsx``. For an example, see
+`binding_e <https://github.com/Franklalalala/AutoSteper/tree/master/gym/analysis/binding_e>`__.

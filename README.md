@@ -1,4 +1,9 @@
 # AutoSteper
+ [![PyPI version](https://badge.fury.io/py/autosteper.svg)](https://badge.fury.io/py/autosteper)  [![Downloads](https://pepy.tech/badge/autosteper/month)](https://pepy.tech/project/autosteper)   [![PyPI - License](https://img.shields.io/pypi/l/autosteper)](https://github.com/Franklalalala/AutoSteper/blob/master/LICENSE.txt)  [![Documentation Status](https://readthedocs.org/projects/autosteper/badge/?version=latest)](https://autosteper.readthedocs.io/en/latest/?badge=latest) 
+
+
+
+
 Automated Stepwise Addition Procedure for Extrafullerene. 
 
 A detailed description could be found in the article: Exploring exohedral functionalization of fullerene with Automation and Neural Network Potential. ![overview](./docs/manual/fig/overview.png)
