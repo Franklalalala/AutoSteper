@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/Franklalalala/AutoSteper/compare/v2.1.0...v2.1.1) (2023-04-27)
+
+
+### Bug Fixes
+
+* update MANIFEST.in to publish pip package ([2503bec](https://github.com/Franklalalala/AutoSteper/commit/2503bec8be32ef13a7fe078ae228411e22ee2b3d))
+
 ## [2.1.0](https://github.com/Franklalalala/AutoSteper/compare/v2.0.0...v2.1.0) (2023-04-27)
 
 
