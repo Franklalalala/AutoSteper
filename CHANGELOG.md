@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/Franklalalala/AutoSteper/compare/v2.0.0...v2.1.0) (2023-04-27)
+
+
+### Features
+
+* refactored pathway and swr analysis pipeline ([d0ea950](https://github.com/Franklalalala/AutoSteper/commit/d0ea950d069c673a035f2f1de8f80af7c7905453))
+
 ## [2.0.0](https://github.com/Franklalalala/AutoSteper/compare/v1.4.0...v2.0.0) (2023-04-17)
 
 
