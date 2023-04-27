@@ -288,7 +288,7 @@ Fig 7. Example of the status_info.
 
 An example about the co-occurrences of ``failed`` and ``wrong`` could be
 found in
-`test_random <https://github.com/Franklalalala/AutoSteper/blob/5763497ea281374ad517abff9a2e1903988b0664/gym/simulation/simulation_modes/test_random/test_random.py#L6>`__.
+`test_random <https://github.com/Franklalalala/AutoSteper/blob/master/gym/simulation/simulation_modes/test_random/test_random.py#L6>`__.
 This module helps to maintain stable operation of the entire program.
 
 The directory of the **proceeding addition stages** is illustrated in
@@ -483,7 +483,7 @@ Details of parameters are presented below:
    set ``geom_mode`` to another value and assign new parameters through
    ``geom_para``. Note that, the new format needs to stay consistent
    with `the
-   original <https://github.com/Franklalalala/AutoSteper/blob/18f474b0dd58adc9cd7484007a14927e2cde5123/src/autosteper/generator.py#L12>`__.
+   original <https://github.com/Franklalalala/AutoSteper/blob/master/src/autosteper/generator.py#L12>`__.
 
 -  ``skin``: parameter to decide whether two atoms are bonded. For
    details see the checker module. By default, this parameter is set to
@@ -913,4 +913,4 @@ There are 4 modes in total. Specifically:
    proceeds.
 
 Examples about how this feature function is presented in
-`test_random <https://github.com/Franklalalala/AutoSteper/blob/5763497ea281374ad517abff9a2e1903988b0664/gym/simulation/simulation_modes/test_random/test_random.py#L6>`__.
+`test_random <https://github.com/Franklalalala/AutoSteper/blob/master/gym/simulation/simulation_modes/test_random/test_random.py#L6>`__.

@@ -245,7 +245,7 @@ Fig 5. Clean schlegel diagram for C66H4.
    If you find this is too tricky, here we present the
    ``try_every_hexagon`` method. This will give all possible projection
    results. Feel free to pick your favorite! See
-   `code <https://github.com/Franklalalala/AutoSteper/blob/437e585d276d650fb8c3fca03ec3140219a52f45/gym/plot_with_FullerneDataParser/plot_C2nXm/plot_C2nXm.py#L24>`__
+   `code <https://github.com/Franklalalala/AutoSteper/blob/master/gym/plot_with_FullerneDataParser/plot_C2nXm/plot_C2nXm.py#L23>`__
    and `result <https://github.com/Franklalalala/AutoSteper/tree/master/gym/plot_with_FullerneDataParser/plot_C2nXm/try_all_hexagons>`__.
 
 
