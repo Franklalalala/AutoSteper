@@ -1,4 +1,4 @@
-prune tests
+prune gym
 recursive-include doc *
 recursive-include src *
 include README.md
