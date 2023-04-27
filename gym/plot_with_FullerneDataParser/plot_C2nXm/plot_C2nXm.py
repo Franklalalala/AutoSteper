@@ -20,6 +20,10 @@ a_plotter.load_cage(atoms=pristine_cage, show_C_label=True, C_label_transparency
 a_plotter.load_addons(addon_set=addon_set, group_symbol='H', show_addon_nums=True)
 plt.savefig('plot_with_label.png', dpi=400)
 plt.close()
+# ####################### try all hexagons, pick your favorite ##################################
+a_plotter.try_every_hexagon(dump_pic_folder='./try_all_hexagons',
+                            addon_set=addon_set,
+                            atoms=pristine_cage, group_symbol='H')
 
 ####################### Re-plot to project from a specific ring ##################################
 # assume [10, 30, 31, 33, 21, 50] is an ideal ring to project from

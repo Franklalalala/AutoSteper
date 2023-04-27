@@ -34,7 +34,6 @@ para = {
     'opt_mode': 'xtb',
     'opt_para': {
         'has_parity': True,
-        'cage_size': 60,
         'cmd_list': [r'path/to/xtb', '--opt', 'tight', '--json'],
         'out_list': ['xtbopt.xyz', 'xtbopt.log', 'xtbout.json'],
         'deal_wrong_mode': 'Report',

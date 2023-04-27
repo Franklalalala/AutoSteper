@@ -1,0 +1,18 @@
+=========A SWR pair has been found.======
+
+The query atoms are in file q_atoms.xyz.
+The target atoms are in file tgt_atoms_rank_1.xyz.
+
+The addon sites in query atoms are:
+[1, 2, 4, 21, 27, 28, 49, 50, 55, 61, 62, 69, 70, 77, 79, 80]
+
+The addon sites in target atoms are:
+[1, 2, 4, 21, 22, 27, 28, 49, 50, 55, 56, 61, 62, 69, 70, 77, 79, 80]
+
+The SWR bond in query atoms are: [51, 52]
+
+The SWR bond in target atoms are: [51, 52]
+
+========================================
+
+

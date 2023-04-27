@@ -1,16 +1,15 @@
 import math
 import os
 import shutil
-from typing import Union
 import warnings
+from typing import Union
 
 import numpy as np
 import pandas as pd
 from ase.io import read, write
 from ase.io.gaussian import read_gaussian_out, write_gaussian_in
 from ase.units import Hartree
-from autosteper.cage import name2seq
-from autosteper.tools import get_low_e_ranks
+from autosteper.tools import get_low_e_ranks, strip_extraFullerene, edit_gau_log
 from dpdispatcher import Task, Submission, Machine, Resources
 
 
@@ -49,7 +48,7 @@ class Optimizer():
         self.checker = None
         self.is_odd = False
         if 'has_parity' in opt_para.keys():
-            self.cage_size = opt_para['cage_size']
+            self.group = None
             self.has_parity = opt_para['has_parity']
         else:
             self.has_parity = False
@@ -63,10 +62,9 @@ class Optimizer():
         os.makedirs(exist_ok=True, name=self.path_cooked)
 
     def simple_chg_parity(self):
-        a_name = os.path.splitext(os.listdir(self.path_raw)[0])[0]
-        _, _0, an_arr = name2seq(name=a_name, cage_size=self.cage_size)
-        add_num = an_arr.sum()
-        if add_num % 2 == 1:
+        a_coord_file = os.path.join(self.path_raw, os.listdir(self.path_raw)[0])
+        _, add_set = strip_extraFullerene(coord_file_path=a_coord_file, group=self.group)
+        if len(add_set) % 2 == 1:
             self.is_odd = True
         else:
             self.is_odd = False
@@ -82,6 +80,7 @@ class Optimizer():
 
         def _run_unit():
             submission.run_submission()
+
         self.mach = Machine(batch_type=self.mach_para['batch_type'],
                             context_type=self.mach_para['context_type'],
                             remote_root=self.mach_para['remote_root'],
@@ -404,9 +403,12 @@ class Gaussian_Optimizer(Optimizer):
                     continue
             self.status_codes.append(0)
             self.passed_names.append(a_job)
-            traj = read_gaussian_out(
-                fd='gau.log')  # The read_gaussian_out function is slightly changed to get all traj.
-
+            # edit gau out is default since it's common for C2nXm that there are no 'input' or 'Z-Matrix' orientations
+            # previous version of autosteper functions based on an edited version of ase (put 'Standard' in source file)
+            # Here we propose to edit gau.log, before read it. This way will not require an edited ase.
+            edit_gau_log('gau.log')
+            with open('gau.log', 'r') as f:
+                traj = read_gaussian_out(fd=f, index=slice(None, None, None))
             write(filename='gau_traj.log', images=traj, format='xyz')
             nimages = len(traj)
 

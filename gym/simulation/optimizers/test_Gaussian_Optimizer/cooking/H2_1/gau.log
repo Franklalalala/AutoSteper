@@ -2,8 +2,8 @@
  Input=gau.gjf
  Output=gau.log
  Initial command:
- /home/mkliu/g16/l1.exe "/data/scratch/Gau-94575.inp" -scrdir="/data/scratch/"
- Entering Link 1 = /home/mkliu/g16/l1.exe PID=     94576.
+ /home/mkliu/g16/l1.exe "/data/scratch/Gau-138678.inp" -scrdir="/data/scratch/"
+ Entering Link 1 = /home/mkliu/g16/l1.exe PID=    138679.
   
  Copyright (c) 1988,1990,1992,1993,1995,1998,2003,2009,2016,
             Gaussian, Inc.  All Rights Reserved.
@@ -77,7 +77,7 @@
  
  ******************************************
  Gaussian 16:  ES64L-G16RevA.03 25-Dec-2016
-                17-Apr-2023 
+                24-Apr-2023 
  ******************************************
  %mem=10GB
  %chk=gau.chk
@@ -105,11 +105,11 @@
  2/9=110/2;
  6/7=2,8=2,9=2,10=2,19=2,28=1/1;
  99/9=1/99;
- Leave Link    1 at Mon Apr 17 01:33:54 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
+ Leave Link    1 at Mon Apr 24 23:02:33 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
  (Enter /home/mkliu/g16/l101.exe)
- -----
- force
- -----
+ ------------------------------
+ Gaussian input prepared by ASE
+ ------------------------------
  Symbolic Z-matrix:
  Charge =  0 Multiplicity = 1
  H                     0.        0.        0. 
@@ -131,7 +131,7 @@
  NQMom=    0.0000000   0.0000000
  NMagM=    2.7928460   2.7928460
  AtZNuc=   1.0000000   1.0000000
- Leave Link  101 at Mon Apr 17 01:33:54 2023, MaxMem=  1342177280 cpu:               3.2 elap:               0.5
+ Leave Link  101 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               3.6 elap:               0.6
  (Enter /home/mkliu/g16/l103.exe)
 
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
@@ -149,9 +149,9 @@
  Number of steps in this run=     20 maximum allowed number of steps=    100.
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
 
- Leave Link  103 at Mon Apr 17 01:33:54 2023, MaxMem=  1342177280 cpu:               0.1 elap:               0.0
+ Leave Link  103 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.1 elap:               0.0
  (Enter /home/mkliu/g16/l202.exe)
-                          Input orientation:                          
+                          Standard orientation:                          
  ---------------------------------------------------------------------
  Center     Atomic      Atomic             Coordinates (Angstroms)
  Number     Number       Type             X           Y           Z
@@ -165,7 +165,7 @@
  Full point group                 D*H     NOp   8
  Largest Abelian subgroup         D2H     NOp   8
  Largest concise Abelian subgroup C2      NOp   2
-                         Standard orientation:                         
+                         Input orientation:                         
  ---------------------------------------------------------------------
  Center     Atomic      Atomic             Coordinates (Angstroms)
  Number     Number       Type             X           Y           Z
@@ -174,7 +174,7 @@
       2          1           0        0.000000    0.000000   -0.372085
  ---------------------------------------------------------------------
  Rotational constants (GHZ):           0.0000000        1810.9970206        1810.9970206
- Leave Link  202 at Mon Apr 17 01:33:54 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
+ Leave Link  202 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
  (Enter /home/mkliu/g16/l301.exe)
  Standard basis: 3-21G (6D, 7F)
  Ernie: Thresh=  0.10000D-02 Tol=  0.10000D-05 Strict=F.
@@ -204,7 +204,7 @@
  Integral buffers will be    131072 words long.
  Raffenetti 2 integral format.
  Two-electron integral symmetry is turned on.
- Leave Link  301 at Mon Apr 17 01:33:54 2023, MaxMem=  1342177280 cpu:               0.3 elap:               0.1
+ Leave Link  301 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l302.exe)
  NPDir=0 NMtPBC=     1 NCelOv=     1 NCel=       1 NClECP=     1 NCelD=      1
          NCelK=      1 NCelE2=     1 NClLst=     1 CellRange=     0.0.
@@ -216,10 +216,10 @@
  IXCGrd= 4 IRadAn=           5 IRanWt=          -1 IRanGd=           0 AccXCQ= 0.00D+00.
  Generated NRdTot=       0 NPtTot=           0 NUsed=           0 NTot=          32
  NSgBfM=     4     4     4     4     4 MxSgAt=     2 MxSgA2=     2.
- Leave Link  302 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.6 elap:               0.1
+ Leave Link  302 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.7 elap:               0.1
  (Enter /home/mkliu/g16/l303.exe)
  DipDrv:  MaxL=1.
- Leave Link  303 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
+ Leave Link  303 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.3 elap:               0.0
  (Enter /home/mkliu/g16/l401.exe)
  ExpMin= 1.83D-01 ExpMax= 5.45D+00 ExpMxC= 5.45D+00 IAcc=3 IRadAn=         5 AccDes= 0.00D+00
  Harris functional with IExCor=  402 and IRadAn=       5 diagonalized for initial guess.
@@ -236,7 +236,7 @@
        Occupied  (SGG)
        Virtual   (SGU) (SGG) (SGU)
  The electronic state of the initial guess is 1-SGG.
- Leave Link  401 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  401 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l502.exe)
  Keep R1 ints in memory in symmetry-blocked form, NReq=5024511.
  FoFCou: FMM=F IPFlag=           0 FMFlag=           0 FMFlg1=           0
@@ -284,7 +284,7 @@
  NSaved= 3 IEnMin= 3 EnMin= -1.17060812839850     IErMin= 3 ErrMin= 1.52D-05
  ErrMax= 1.52D-05  0.00D+00 EMaxC= 1.00D-01 BMatC= 9.24D-10 BMatP= 5.95D-05
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
- Large coefficients: NSaved=  3 BigCof=    0.00 CofMax=   10.00 Det= 0.00D+00
+ Large coefficients: NSaved=  3 BigCof=    0.00 CofMax=   10.00 Det=-6.78D-21
  Inversion failed.  Reducing to  2 matrices.
  Coeff-Com:  0.393D-02 0.996D+00
  Coeff:      0.393D-02 0.996D+00
@@ -317,7 +317,7 @@
  SCF Done:  E(RB3LYP) =  -1.17060815763     A.U. after    5 cycles
             NFock=  5  Conv=0.12D-08     -V/T= 2.0329
  KE= 1.133286372882D+00 PE=-3.623836916005D+00 EE= 6.088451752841D-01
- Leave Link  502 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  502 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l601.exe)
  Copying SCF densities to generalized density rwf, IOpCl= 0 IROHF=0.
 
@@ -373,14 +373,14 @@
  Symmetry B2U  KE= 0.000000000000D+00
  Symmetry B3U  KE= 0.000000000000D+00
  No NMR shielding tensors so no spin-rotation constants.
- Leave Link  601 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  601 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.5 elap:               0.1
  (Enter /home/mkliu/g16/l701.exe)
  ... and contract with generalized density number  0.
  Compute integral first derivatives.
- Leave Link  701 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  701 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l702.exe)
  L702 exits ... SP integral derivatives will be done elsewhere.
- Leave Link  702 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
+ Leave Link  702 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
  (Enter /home/mkliu/g16/l703.exe)
  Integral derivatives from FoFJK, PRISM(SPDF).
  Compute integral first derivatives, UseDBF=F ICtDFT=           0.
@@ -392,9 +392,9 @@
          wScrn=  0.000000 ICntrl=      2127 IOpCl=  0 I1Cent=           0 NGrid=           0
          NMat0=    1 NMatS0=      1 NMatT0=    0 NMatD0=    1 NMtDS0=    0 NMtDT0=    0
  Petite list used in FoFCou.
- Leave Link  703 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  703 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l716.exe)
- Dipole        =-7.39557099D-32 0.00000000D+00-1.11022302D-16
+ Dipole        =-8.62816615D-32 0.00000000D+00-1.11022302D-16
  ***** Axes restored to original set *****
  -------------------------------------------------------------------
  Center     Atomic                   Forces (Hartrees/Bohr)
@@ -404,7 +404,7 @@
       2        1          -0.000000000   -0.000000000    0.001488248
  -------------------------------------------------------------------
  Cartesian Forces:  Max     0.001488248 RMS     0.000859240
- Leave Link  716 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
+ Leave Link  716 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.3 elap:               0.0
  (Enter /home/mkliu/g16/l103.exe)
 
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
@@ -440,9 +440,9 @@
  Lowest energy point so far.  Saving SCF results.
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
 
- Leave Link  103 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
+ Leave Link  103 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
  (Enter /home/mkliu/g16/l202.exe)
-                          Input orientation:                          
+                          Standard orientation:                          
  ---------------------------------------------------------------------
  Center     Atomic      Atomic             Coordinates (Angstroms)
  Number     Number       Type             X           Y           Z
@@ -457,7 +457,7 @@
  RotChk:  IX=0 Diff= 0.00D+00
  Largest Abelian subgroup         D2H     NOp   8
  Largest concise Abelian subgroup C2      NOp   2
-                         Standard orientation:                         
+                         Input orientation:                         
  ---------------------------------------------------------------------
  Center     Atomic      Atomic             Coordinates (Angstroms)
  Number     Number       Type             X           Y           Z
@@ -466,7 +466,7 @@
       2          1           0        0.000000    0.000000   -0.373106
  ---------------------------------------------------------------------
  Rotational constants (GHZ):           0.0000000        1801.1027607        1801.1027607
- Leave Link  202 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
+ Leave Link  202 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
  (Enter /home/mkliu/g16/l301.exe)
  Standard basis: 3-21G (6D, 7F)
  Ernie: Thresh=  0.10000D-02 Tol=  0.10000D-05 Strict=F.
@@ -496,7 +496,7 @@
  Integral buffers will be    131072 words long.
  Raffenetti 2 integral format.
  Two-electron integral symmetry is turned on.
- Leave Link  301 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.3 elap:               0.1
+ Leave Link  301 at Mon Apr 24 23:02:34 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l302.exe)
  NPDir=0 NMtPBC=     1 NCelOv=     1 NCel=       1 NClECP=     1 NCelD=      1
          NCelK=      1 NCelE2=     1 NClLst=     1 CellRange=     0.0.
@@ -508,13 +508,13 @@
  IXCGrd= 4 IRadAn=           5 IRanWt=          -1 IRanGd=           0 AccXCQ= 0.00D+00.
  Generated NRdTot=       0 NPtTot=           0 NUsed=           0 NTot=          32
  NSgBfM=     4     4     4     4     4 MxSgAt=     2 MxSgA2=     2.
- Leave Link  302 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.6 elap:               0.1
+ Leave Link  302 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.7 elap:               0.1
  (Enter /home/mkliu/g16/l303.exe)
  DipDrv:  MaxL=1.
- Leave Link  303 at Mon Apr 17 01:33:55 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
+ Leave Link  303 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.3 elap:               0.1
  (Enter /home/mkliu/g16/l401.exe)
  Initial guess from the checkpoint file:  "gau.chk"
- B after Tr=     0.000000    0.000000   -0.000000
+ B after Tr=     0.000000    0.000000    0.000000
          Rot=    1.000000    0.000000    0.000000    0.000000 Ang=   0.00 deg.
  Guess basis will be translated and rotated to current coordinates.
  JPrj=2 DoOrth=T DoCkMO=T.
@@ -522,7 +522,7 @@
        Occupied  (SGG)
        Virtual   (SGU) (SGG) (SGU)
  The electronic state of the initial guess is 1-SGG.
- Leave Link  401 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.6 elap:               0.1
+ Leave Link  401 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.8 elap:               0.1
  (Enter /home/mkliu/g16/l502.exe)
  Keep R1 ints in memory in symmetry-blocked form, NReq=5024511.
  FoFCou: FMM=F IPFlag=           0 FMFlag=           0 FMFlg1=           0
@@ -577,14 +577,14 @@
  SCF Done:  E(RB3LYP) =  -1.17061103734     A.U. after    3 cycles
             NFock=  3  Conv=0.39D-09     -V/T= 2.0346
  KE= 1.131472946838D+00 PE=-3.619355568494D+00 EE= 6.081195503670D-01
- Leave Link  502 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  502 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.5 elap:               0.1
  (Enter /home/mkliu/g16/l701.exe)
  ... and contract with generalized density number  0.
  Compute integral first derivatives.
- Leave Link  701 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  701 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l702.exe)
  L702 exits ... SP integral derivatives will be done elsewhere.
- Leave Link  702 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.3 elap:               0.0
+ Leave Link  702 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
  (Enter /home/mkliu/g16/l703.exe)
  Integral derivatives from FoFJK, PRISM(SPDF).
  Compute integral first derivatives, UseDBF=F ICtDFT=           0.
@@ -596,9 +596,9 @@
          wScrn=  0.000000 ICntrl=      2127 IOpCl=  0 I1Cent=           0 NGrid=           0
          NMat0=    1 NMatS0=      1 NMatT0=    0 NMatD0=    1 NMtDS0=    0 NMtDT0=    0
  Petite list used in FoFCou.
- Leave Link  703 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  703 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
  (Enter /home/mkliu/g16/l716.exe)
- Dipole        = 4.93038066D-32 0.00000000D+00-1.11022302D-16
+ Dipole        = 6.16297582D-32 0.00000000D+00 0.00000000D+00
  ***** Axes restored to original set *****
  -------------------------------------------------------------------
  Center     Atomic                   Forces (Hartrees/Bohr)
@@ -608,7 +608,7 @@
       2        1          -0.000000000   -0.000000000    0.000008060
  -------------------------------------------------------------------
  Cartesian Forces:  Max     0.000008060 RMS     0.000004653
- Leave Link  716 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.2 elap:               0.0
+ Leave Link  716 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.3 elap:               0.0
  (Enter /home/mkliu/g16/l103.exe)
 
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
@@ -636,10 +636,10 @@
  Iteration  1 RMS(Cart)=  0.00001495 RMS(Int)=  0.00000000
  Iteration  2 RMS(Cart)=  0.00000000 RMS(Int)=  0.00000000
  ITry= 1 IFail=0 DXMaxC= 1.06D-05 DCOld= 1.00D+10 DXMaxT= 3.00D-01 DXLimC= 3.00D+00 Rises=F
- ClnCor:  largest displacement from symmetrization is 6.47D-22 for atom     2.
+ ClnCor:  largest displacement from symmetrization is 2.22D-16 for atom     2.
  Variable       Old X    -DE/DX   Delta X   Delta X   Delta X     New X
                                  (Linear)    (Quad)   (Total)
-    R1        1.41013   0.00001   0.00002  -0.00000   0.00002   1.41016
+    R1        1.41013   0.00001   0.00002   0.00000   0.00002   1.41016
          Item               Value     Threshold  Converged?
  Maximum Force            0.000008     0.000450     YES
  RMS     Force            0.000008     0.000300     YES
@@ -657,12 +657,12 @@
  ! R1    R(1,2)                  0.7462         -DE/DX =    0.0                 !
  --------------------------------------------------------------------------------
  Lowest energy point so far.  Saving SCF results.
- Largest change from initial coordinates is atom    2       0.001 Angstoms.
+ Largest change from initial coordinates is atom    1       0.001 Angstoms.
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
 
- Leave Link  103 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
+ Leave Link  103 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
  (Enter /home/mkliu/g16/l202.exe)
-                          Input orientation:                          
+                          Standard orientation:                          
  ---------------------------------------------------------------------
  Center     Atomic      Atomic             Coordinates (Angstroms)
  Number     Number       Type             X           Y           Z
@@ -677,7 +677,7 @@
  RotChk:  IX=0 Diff= 0.00D+00
  Largest Abelian subgroup         D2H     NOp   8
  Largest concise Abelian subgroup C2      NOp   2
-                         Standard orientation:                         
+                         Input orientation:                         
  ---------------------------------------------------------------------
  Center     Atomic      Atomic             Coordinates (Angstroms)
  Number     Number       Type             X           Y           Z
@@ -686,7 +686,7 @@
       2          1           0        0.000000    0.000000   -0.373106
  ---------------------------------------------------------------------
  Rotational constants (GHZ):           0.0000000        1801.1027607        1801.1027607
- Leave Link  202 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
+ Leave Link  202 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
  (Enter /home/mkliu/g16/l601.exe)
  Copying SCF densities to generalized density rwf, IOpCl= 0 IROHF=0.
 
@@ -716,7 +716,7 @@
  Electronic spatial extent (au):  <R**2>=              5.0748
  Charge=              0.0000 electrons
  Dipole moment (field-independent basis, Debye):
-    X=              0.0000    Y=              0.0000    Z=             -0.0000  Tot=              0.0000
+    X=              0.0000    Y=              0.0000    Z=              0.0000  Tot=              0.0000
  Quadrupole moment (field-independent basis, Debye-Ang):
    XX=             -1.9736   YY=             -1.9736   ZZ=             -1.5413
    XY=              0.0000   XZ=             -0.0000   YZ=              0.0000
@@ -724,9 +724,9 @@
    XX=             -0.1441   YY=             -0.1441   ZZ=              0.2882
    XY=              0.0000   XZ=             -0.0000   YZ=              0.0000
  Octapole moment (field-independent basis, Debye-Ang**2):
-  XXX=             -0.0000  YYY=              0.0000  ZZZ=              0.0000  XYY=             -0.0000
-  XXY=              0.0000  XXZ=              0.0000  XZZ=             -0.0000  YZZ=              0.0000
-  YYZ=              0.0000  XYZ=              0.0000
+  XXX=             -0.0000  YYY=              0.0000  ZZZ=             -0.0000  XYY=             -0.0000
+  XXY=              0.0000  XXZ=             -0.0000  XZZ=             -0.0000  YZZ=              0.0000
+  YYZ=             -0.0000  XYZ=              0.0000
  Hexadecapole moment (field-independent basis, Debye-Ang**3):
  XXXX=             -1.7213 YYYY=             -1.7213 ZZZZ=             -2.6642 XXXY=              0.0000
  XXXZ=              0.0000 YYYX=              0.0000 YYYZ=              0.0000 ZZZX=              0.0000
@@ -738,24 +738,22 @@
  Symmetry B2G  KE= 0.000000000000D+00
  Symmetry B3G  KE= 0.000000000000D+00
  Symmetry AU   KE= 0.000000000000D+00
- Symmetry B1U  KE= 3.640810591819D-33
+ Symmetry B1U  KE= 1.098191550059D-32
  Symmetry B2U  KE= 0.000000000000D+00
  Symmetry B3U  KE= 0.000000000000D+00
  No NMR shielding tensors so no spin-rotation constants.
- Leave Link  601 at Mon Apr 17 01:33:56 2023, MaxMem=  1342177280 cpu:               0.4 elap:               0.1
+ Leave Link  601 at Mon Apr 24 23:02:35 2023, MaxMem=  1342177280 cpu:               0.5 elap:               0.1
  (Enter /home/mkliu/g16/l9999.exe)
- 1\1\GINC-NODE01\FOpt\RB3LYP\3-21G\H2\MKLIU\17-Apr-2023\0\\#P opt b3lyp
- /3-21G\\force\\0,1\H,0.,0.,-0.0010206146\H,0.,0.,0.7451906146\\Version
- =ES64L-G16RevA.03\State=1-SGG\HF=-1.170611\RMSD=3.903e-10\RMSF=4.653e-
- 06\Dipole=0.,0.,0.\Quadrupole=-0.1071426,-0.1071426,0.2142851,0.,0.,0.
- \PG=D*H [C*(H1.H1)]\\@
+ 1\1\GINC-NODE01\FOpt\RB3LYP\3-21G\H2\MKLIU\24-Apr-2023\0\\#P opt b3lyp
+ /3-21G\\Gaussian input prepared by ASE\\0,1\H,0.,0.,-0.0010206146\H,0.
+ ,0.,0.7451906146\\Version=ES64L-G16RevA.03\State=1-SGG\HF=-1.170611\RM
+ SD=3.903e-10\RMSF=4.653e-06\Dipole=0.,0.,0.\Quadrupole=-0.1071426,-0.1
+ 071426,0.2142851,0.,0.,0.\PG=D*H [C*(H1.H1)]\\@
 
 
- DEFINE YOUR TERMS, YOU WILL PERMIT ME AGAIN TO SAY, 
- OR WE SHALL NEVER UNDERSTAND ONE ANOTHER.
-
-                                    -- VOLTAIRE
- Job cpu time:       0 days  0 hours  0 minutes 11.6 seconds.
- Elapsed time:       0 days  0 hours  0 minutes  2.0 seconds.
+ THOSE WHO ARE UNABLE TO LEARN FROM PAST MEETINGS
+ ARE CONDEMNED TO REPEAT THEM.
+ Job cpu time:       0 days  0 hours  0 minutes 13.1 seconds.
+ Elapsed time:       0 days  0 hours  0 minutes  2.2 seconds.
  File lengths (MBytes):  RWF=      6 Int=      0 D2E=      0 Chk=      1 Scr=      1
- Normal termination of Gaussian 16 at Mon Apr 17 01:33:56 2023.
+ Normal termination of Gaussian 16 at Mon Apr 24 23:02:35 2023.

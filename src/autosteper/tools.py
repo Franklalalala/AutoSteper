@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import Union
 
+import ase
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -12,6 +13,9 @@ from ase.neighborlist import build_neighbor_list
 from ase.units import Hartree
 from networkx import isomorphism, Graph
 from numpy import sin, cos
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.gridspec import GridSpec
 
 
 def rotate_around_axis(norm_axis: np.array, old_vec: np.array, theta: float):
@@ -398,6 +402,18 @@ def lazy_file_mid_name(file_mid_name: str = None):
         file_mid_name = '_'
     return file_mid_name
 
+# in case there are no Input orientation or Z-Matrix orientation
+def edit_gau_log(gau_path: str):
+    with open('gau_temp.log', 'w') as f_w, open(gau_path, 'r') as f_r:
+        for a_line in f_r.readlines():
+            if a_line.startswith('                         Standard orientation:'):
+                a_line = a_line.replace('Standard', 'Input')
+            elif a_line.startswith('                          Input orientation:'): # avoid duplicate
+                a_line = a_line.replace('Input', 'Standard')
+            f_w.write(a_line)
+    os.remove(gau_path)
+    shutil.copy(src='gau_temp.log', dst=gau_path)
+    os.remove('gau_temp.log')
 
 def simple_parse_logs(dump_root: str, src_root: str, mode: str,
                       group: str = None, file_mid_name: str = None):
@@ -427,13 +443,26 @@ def simple_parse_logs(dump_root: str, src_root: str, mode: str,
     for a_file in os.listdir('./'):
         if mode == 'gauss':
             try:
-                atoms = read_gaussian_out(fd=a_file)[-1]
-                e = atoms.get_total_energy()
+                with open(a_file, 'r') as f:
+                    atoms_list = read_gaussian_out(fd=f, index=slice(None, None, None))
+                try:
+                    atoms = atoms_list[-1]
+                    e = atoms.get_total_energy()
+                except:  # in case the last optimization frame ended abnormally
+                    atoms = atoms_list[-2]
+                    e = atoms.get_total_energy()
             except:
-                # for the errored optimization file
-                atoms = read_gaussian_out(fd=a_file)[-2]
-                e = atoms.get_total_energy()
-        elif mode == 'xyz':
+                # in case there are no Input orientation or Z-Matrix orientation
+                edit_gau_log(a_file)
+                with open(a_file, 'r') as f:
+                    atoms_list = read_gaussian_out(fd=f, index=slice(None, None, None))
+                try:
+                    atoms = atoms_list[-1]
+                    e = atoms.get_total_energy()
+                except:  # in case the last optimization frame ended abnormally
+                    atoms = atoms_list[-2]
+                    e = atoms.get_total_energy()
+        elif mode == 'xtb':
             try:
                 e, atoms = get_last_from_log(log_path=a_file)
             except Exception as e:
@@ -472,6 +501,12 @@ def simple_parse_logs(dump_root: str, src_root: str, mode: str,
         for i in range(max_len - len(e_list)):
             e_list.append(None)
         e_map.update({a_key: e_list})
+
+    if not 0 in add_num_list:
+        pristine_cage, _ = strip_extraFullerene(atoms=atoms, group=group)
+        write(filename=os.path.join(dump_xyz, '0_addons_1.xyz'), images=pristine_cage, format='xyz')
+        add_num_list.append(0)
+        e_map.update({0: [0]*len(e_list)})
 
     info = pd.DataFrame(columns=sorted(add_num_list))
     for an_add in info.columns:
@@ -533,13 +568,40 @@ def get_connection(xyz_root: str, connection_dump: str, step: int, file_mid_name
     os.chdir(cwd_)
 
 
-def simple_dump_pathway(pathway_info_path: str, dump_root: str, src_xyz_root: str, top_K: int = None):
+def plot_pathway_heatmap(rel_e_df: pd.DataFrame, dpi: int = 400):
+    fig = plt.figure(dpi=dpi, constrained_layout=True)
+    cmap = sns.light_palette((260, 75, 60), input="husl", as_cmap=True)
+
+    rel_pathway_arr = np.array(rel_e_df.sum(axis=1))
+    rel_pathway_arr = rel_pathway_arr - rel_pathway_arr[0]
+    rel_pathway = pd.DataFrame(rel_pathway_arr)
+
+    gs = GridSpec(nrows=1, ncols=2, width_ratios=[len(rel_e_df.columns), 1], figure=fig)
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+    sns.heatmap(rel_e_df, annot=True, cmap=cmap, linewidths=.5, ax=ax1, cbar=False)
+    ax1.set_title('Isomer')
+    ax1.set_xlabel('Number of addends')
+    sns.heatmap(rel_pathway, annot=True, cmap=cmap, linewidths=.5, ax=ax2, cbar=True)
+    ax2.axes.yaxis.set_visible(False)
+    ax2.axes.xaxis.set_visible(False)
+    ax2.set_title('Pathway')
+
+    fig.suptitle('Relative energy (eV)')
+    plt.savefig(f'Path_relative_energy.png')
+    rel_e_df['pathway'] = rel_pathway_arr
+    rel_e_df.to_pickle('pathway_rel_e.pickle')
+    rel_e_df.to_excel('pathway_rel_e.xlsx')
+    plt.close(fig=fig)
+
+def simple_dump_pathway(pathway_info_path: str, dump_root: str, src_xyz_root: str, top_K: int = None, dpi: int=400):
     cwd_ = os.getcwd()
     pathway_info = pd.read_pickle(pathway_info_path)
+    pathway_info = pathway_info[pathway_info.index < top_K]
     dump_root = os.path.abspath(dump_root)
     os.makedirs(dump_root, exist_ok=True)
     src_xyz_root = os.path.abspath(src_xyz_root)
-    for idx, a_pathway in enumerate(pathway_info['name'][:top_K]):
+    for idx, a_pathway in enumerate(pathway_info['name']):
         a_sub_dump = os.path.join(dump_root, f'path_rank_{idx + 1}')
         os.makedirs(a_sub_dump, exist_ok=True)
         os.chdir(src_xyz_root)
@@ -550,8 +612,35 @@ def simple_dump_pathway(pathway_info_path: str, dump_root: str, src_xyz_root: st
             with open('traj.log', 'a') as f_w, open(a_name, 'r') as f_r:
                 for a_line in f_r.readlines():
                     f_w.write(a_line)
+    e_lists = pathway_info['rel_e']
+    e_array = np.array(e_lists[0])
+    for i in e_lists[1:]:
+        e_array = np.vstack((e_array, np.array(i)))
+    rel_e_df = pd.DataFrame(e_array)
+    a_name_list = pathway_info['name'][0]
+    add_list = []
+    for a_name in a_name_list:
+        an_add = int(a_name.split('_')[0])
+        add_list.append(an_add)
+    rel_e_df.columns = sorted(add_list)
+    rel_e_df.index = np.array(rel_e_df.index) + 1
+    os.chdir(dump_root)
+    os.chdir('./../')
+    pathway_info.index = np.array(pathway_info.index) + 1
+    pathway_info.to_pickle(pathway_info_path)
+    pathway_info.to_excel(pathway_info_path[:-6]+'xlsx')
+    plot_pathway_heatmap(rel_e_df=rel_e_df, dpi=dpi)
     os.chdir(cwd_)
 
+
+def test_iso_for_two_atoms(atoms_1: ase.Atoms, atoms_2: ase.Atoms):
+    g_1 = get_G(atoms_1)
+    g_2 = get_G(atoms_2)
+    gm = isomorphism.GraphMatcher(g_1, g_2)
+    if gm.is_isomorphic():
+        return 1, next(gm.match())
+    else:
+        return 0
 
 def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_path: str, file_mid_name: str = None):
     cwd_ = os.getcwd()
@@ -611,13 +700,14 @@ def get_pathway_info(e_info_path: str, xyz_root: str, cnt_root: str, dump_info_p
 # To do: a better way to get swr maps
 def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
     """
-    Currently only support single SWR scenario.
+    Currently only support one-step-SWR scenario.
     q_atoms: atoms that to be queried
     tgt_atoms: the target atoms
     swr_container: List that contains the SWR positions,
     first element corresponds to the queried graph, second for the target graph.
     """
-    print('You have entered a SWR match program, this may take a few minutes, take a break for coffee please.')
+    print('You have entered a SWR map program (on pristine cages), '
+          'this may take a few minutes, take a break for coffee please.')
     q_G = get_G(q_atoms)
     tgt_G = get_G(tgt_atoms)
     swr_container = []
@@ -636,32 +726,52 @@ def map_SWR(q_atoms: Atoms, tgt_atoms: Atoms):
                 dummy_tgt_G.remove_node(jj)
                 if nx.is_isomorphic(dummy_tgt_G, dummy_q_G):
                     swr_container.append([ii, jj])
-                    return swr_container
+                    print(f'A SWR pair has been found: {swr_container}. (Start from zero.)')
+                    yield swr_container.copy()
+                    del swr_container[-1]
+            del swr_container[-1]
 
 
+# Map target to query
 def match_swr_cages(query_cage: Atoms, target_cage: Atoms):
-    swr = map_SWR(q_atoms=query_cage, tgt_atoms=target_cage)
-    # swr = [[29, 31], [54, 55]] # for test
+    match_map_list = []
+    swr_pair_list = []
+    q_swr_adj_nodes_set_list = []
     query_G = get_G(query_cage)
-    dummy_query_G = query_G.copy()
-    dummy_query_G.remove_nodes_from(swr[0])
+    for swr in map_SWR(q_atoms=query_cage, tgt_atoms=target_cage):
+        swr_pair_list.append(swr)
+        dummy_query_G = query_G.copy()
+        q_swr = swr[0]
+        q_swr_adj_nodes = []
+        for a_node in q_swr:
+            for an_adj in dummy_query_G[a_node]:
+                if not an_adj in q_swr or an_adj in q_swr_adj_nodes:
+                    q_swr_adj_nodes.append(an_adj)
+        q_swr_adj_nodes_set = set(q_swr_adj_nodes)
+        q_swr_adj_nodes_set_list.append(q_swr_adj_nodes_set)
 
-    target_G = get_G(target_cage)
-    dummy_target_G = target_G.copy()
-    dummy_target_G.remove_nodes_from(swr[1])
+        dummy_query_G.remove_nodes_from(swr[0])
+        target_G = get_G(target_cage)
+        target_G.remove_nodes_from(swr[1])
 
-    GM = isomorphism.GraphMatcher(dummy_query_G, dummy_target_G)
-    match_map = next(GM.match())
-    new_query_cage = Atoms()
+        GM = isomorphism.GraphMatcher(target_G, dummy_query_G)
+        match_map = next(GM.match())
+        match_map_list.append(match_map)
+    print('SWR map on pristine cages has been done.')
+    return match_map_list, swr_pair_list, q_swr_adj_nodes_set_list
+
+def re_label_cages(old_atoms: Atoms, match_map: dict, swr_pair: list, is_reverse_map: bool = False):
+    if is_reverse_map:
+        match_map = dict(zip(match_map.values(), match_map.keys()))
+    new_atoms = Atoms()
     flag = 0
-    for a_tgt_idx in range(len(query_cage)):
-        if not a_tgt_idx in match_map.values():
-            new_query_cage.append(query_cage[swr[0][flag]])
+    addon_sites = set()
+    for idx, an_atoms in enumerate(old_atoms):
+        if idx in swr_pair[0]:
+            new_atoms.append(old_atoms[swr_pair[1][flag]])
             flag = 1
-        for a_q_idx, a_query_atom in enumerate(query_cage):
-            if not a_q_idx in match_map.keys():
-                continue
-            mapped_idx = match_map[a_q_idx]
-            if mapped_idx == a_tgt_idx:
-                new_query_cage.append(a_query_atom)
-    return new_query_cage, match_map, swr[1]
+        elif idx in match_map.keys():
+            new_atoms.append(old_atoms[match_map[idx]])
+        else:
+            new_atoms.append(an_atoms)
+    return new_atoms

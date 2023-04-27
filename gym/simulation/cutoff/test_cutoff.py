@@ -26,6 +26,7 @@ for a_rank in get_low_e_ranks(e_arr=e_arr, para=para):
 assert a_rank + 1 == 5
 
 #################################### lower boundary of rank, value ########################################
+# met any one of the cutoff will be good
 para = {
     'mode': 'rank_and_value',
     'rank': 5,
@@ -36,6 +37,7 @@ for a_rank in get_low_e_ranks(e_arr=e_arr, para=para):
 assert a_rank == 0
 
 ################################ upper boundary of rank, value ###############################################
+# both cutoff needs to be met
 para = {
     'mode': 'rank_or_value',
     'rank': 5,

@@ -1,4 +1,5 @@
-# These pathways have identical end-state products
+# This script is applied to scenario when one is not interested in mapping end-state isomers,
+# or these pathways have identical end-state products.
 import os
 
 import matplotlib.pyplot as plt

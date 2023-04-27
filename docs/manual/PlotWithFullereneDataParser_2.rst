@@ -239,6 +239,16 @@ Fig 5. Clean schlegel diagram for C66H4.
 
    </center>
 
+
+.. tip::
+
+   If you find this is too tricky, here we present the
+   ``try_every_hexagon`` method. This will give all possible projection
+   results. Feel free to pick your favorite! See
+   `code <https://github.com/Franklalalala/AutoSteper/blob/437e585d276d650fb8c3fca03ec3140219a52f45/gym/plot_with_FullerneDataParser/plot_C2nXm/plot_C2nXm.py#L24>`__
+   and `result <https://github.com/Franklalalala/AutoSteper/tree/master/gym/plot_with_FullerneDataParser/plot_C2nXm/try_all_hexagons>`__.
+
+
 Case 2: zoom in
 ~~~~~~~~~~~~~~~
 
@@ -518,18 +528,31 @@ Plot SWR
 --------
 
 The problem of plot SWR is basically the same as above. A one-step-SWR
-between cage 1 and cage 2 means there is one C-C bond rotated 90 degrees in cage 1 to become cage 2.
+between cage 1 and cage 2 means there is one C-C bond rotated 90 degrees
+in cage 1 to become cage 2.
 
 For example, :math:`\rm ^{\#11}C_{84}` and :math:`\rm ^{\#12}C_{84}`,
-there are 82 identical carbon atoms. One needs to match pristine
-cages before the ``load_cage`` stage and change the addon numbers to the
-new, re-matched cages.
+there are 82 identical carbon atoms. One needs to match pristine cages
+before the ``load_cage`` stage and change the addon numbers to the new,
+re-matched cages.
 
-These operations have been wrapped into a single method,
-``plot_swr_unit``. For parameters:
+In the latest version of AutoSteper, this kind of cage-matching has been
+wrapped into the ``find_SWR`` function. Information about SWR bonds and
+addon sites has been dumped into the ``sites_info.txt``. Therefore, the
+plot section has been released from complex matching problem. Simply
+plot every xyz file with regard to sites info well present a pleasant
+view.
+
+The corresponding method is ``plot_swr``. For parameters:
 
 -  ``src_swr_root``: root to the AutoSteper-generated SWR pairs
 -  ``dpi``: the quality of dumped pictures
+
+
+.. warning::
+
+   If projection ring is specified, please make sure the projection ring is in the queried atoms. The target atoms is mapped to the queried atoms. There are some scenarios that this ring does not appear in the mapped target atoms. But it's very rare. After all, be careful about this parameter!
+
 
 The rest of the parameters are the same as in the previous section. This
 method will navigate to the original SWR workbase(``src_swr_root``),

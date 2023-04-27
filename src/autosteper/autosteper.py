@@ -1,7 +1,6 @@
 import warnings
 
-from autosteper.cage import Cage
-from autosteper.cage import blk_list
+from autosteper.cage import blk_list, Cage, name2seq
 from autosteper.checker import Checker
 from autosteper.generator import Generator
 from autosteper.optimizers import *
@@ -15,6 +14,9 @@ class AutoSteper():
         self.generator = Generator(gen_para=para['gen_para'], pst_cage=self.cage)
         self.optimizer = switch_optimizers(mode=para['opt_mode'], para=para['opt_para'])
         self.optimizer.checker = Checker(group=self.generator.group, pst_cage=self.cage)
+        self.optimizer.checker.skin = self.generator.skin
+        if self.optimizer.has_parity:
+            self.optimizer.group = self.generator.group
 
         if 'run_para' in para.keys():
             self.start = para['run_para']['start']
@@ -28,11 +30,7 @@ class AutoSteper():
                 self.step = para['run_para']['step']
 
             if 'wht_list_para' not in para['run_para'].keys():
-                self.wht_list_para = {
-                    'mode': 'rank_and_value',
-                    'rank': 200,
-                    'value': 1
-                }
+                raise RuntimeError('Please input a set of energy cutoff.')
             else:
                 self.wht_list_para = para['run_para']['wht_list_para']
 

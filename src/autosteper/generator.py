@@ -10,13 +10,13 @@ from autosteper.tools import rotate_around_axis
 from numpy import pi
 
 pre_def_geom_para = {
-    'len_cage_Cl': 1.81,
+    'len_cage_Cl': 1.817,
     'len_cage_Br': 2.00,
     'len_cage_I': 2.26,
     'len_cage_F': 1.37,
     'len_cage_H': 1.10,
     'len_cage_CH3': 1.54,
-    'len_cage_CF3': 1.55,
+    'len_cage_CF3': 1.56,
     'len_cage_OH': 1.41,
     'len_CH3': 1.09,
     'len_CF3': 1.33,
@@ -38,6 +38,10 @@ class Generator():
             self.geom_para = pre_def_geom_para
         else:
             self.geom_para = gen_para['geom_para']
+        if 'skin' in gen_para.keys():
+            self.skin = gen_para['skin']
+        else:
+            self.skin = 0.15
 
     def gen_seq(self, mode: str, gen_out_path: str, prev_seq: str = None, random_num: int = None):
         commandline = f'{self.gen_core_path} --graph6str \"{self.pst_cage.graph6str}\" --addnum \"{self.pst_cage.add_num}\" -o \"{gen_out_path}\" -m \"{mode}\" '
@@ -109,7 +113,6 @@ class Generator():
     def build(self, is_first: bool, gen_out_path: str, dyn_cage: Cage,
               dump_folder: str, prev_xyz_path: str,
               parent_name: str = None, parent_info: dict = None, prev_addon_set: set = None):
-        print('start build:\n')
 
         def _lazy_dump():
             if dyn_cage.is_pre_scan:

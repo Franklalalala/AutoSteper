@@ -8,10 +8,15 @@ reaction in a fully automated fashion. That is:
 -  Optimize on the fly
 -  Topological check on the fly
 
-Besides, multiple analysis functions are available. Currently, it well
+Additionally, multiple analysis pipelines are available. Currently, it well
 supports the exohedral fullerene systems
 :math:`\rm C_{2n}X_m(X=H, F,Cl, Br, I, OH, CF_3, CH_3)`. This is the
 user guide to help users hands-on.
+
+.. note::
+
+   This is a stable version, all key modules have been tested.
+
 
 Table of Contents
 ------------------------------------

@@ -14,7 +14,7 @@ para = {
         'number_node': 6,
         'cpu_per_node': 6,
         'gpu_per_node': 0,
-        'group_size': 10,
+        'group_size': 1, # This parameter needs to stay with 1 for ase optimizers
         'queue_name': "batch",
         'envs': {
             "OMP_STACKSIZE": "4G",

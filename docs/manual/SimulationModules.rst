@@ -1,12 +1,6 @@
 Simulation Modules
 ==================
 
-
-.. note::
-
-   The ``Plot with FullereneDataParser`` section may help you properly visualize simulation results.
- 
-
 AutoSteper provides a fully automated fashion to simulate stepwise
 chemical reactions. That contains on-the-fly building, optimizing, and
 checking. Additionally, a light-weight pathway search algorithm is built
@@ -101,7 +95,6 @@ An example could be found in
 
 Parameters and folder system
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 
 The ``resrc_para`` and ``mach_para`` are designed to configure a
 suitable environment for optimizers. (see optimizer module) After that,
@@ -349,31 +342,37 @@ Generally speaking, there are two types of cutoff. The hard one,
 The reason to call ``rank`` as hard is that, for each step, there are
 tens of thousands of isomers to be screened. We cannot estimate the
 sparsity of low-energy isomers beforehand. We can only set an upper
-limit base on our computational resources. That is, by default, 200. If
-one has 5 times computational resources, this figure could be toggled to
-1000. It’s **adjustable**.
+limit base on our computational resources. It could be 200, or if one
+has 5 times the computational resources, this figure could be toggled to
+1000. It’s **tunable**.
 
 On the other hand, from a chemical view, one needs to set this cutoff
-with a soft criterion, ``value``. This figure is by default 1eV, and
-it’s **adjustable**.
+with a soft criterion, ``value``. This figure could be 1eV or other
+numbers. It’s **tunable**.
 
 AutoSteper provides 4 modes to control the cutoff process:
 
 -  ``rank``
 -  ``value``
--  ``rank_or_value`` or ``value_and_rank``: both of the cutoffs need to
+-  ``rank_or_value`` or ``value_or_rank``: both of the cutoffs need to
    be met.
 -  ``rank_and_value`` or ``value_and_rank``: met anyone of the two
    cutoffs is sufficient.
 
-By default, AutoSteper utilizes the ``rank_and_value`` mode, for
-``rank``\ =200, ``value``\ =1eV. **This is adjustable.** **One may apply
-any of the modes with any favored number.** See
-`code <https://github.com/Franklalalala/AutoSteper/blob/773de279226b089141e580901894531e9dba70bd/src/autosteper/autosteper.py#L30>`__
-and
-`test <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/cutoff>`__.
+In the latest version of AutoSteper, the default cutoff has been
+removed. Users **MUST** provide a reasonable energy cutoff for growth
+simulation. Here are two tips for users to choose a suitable cutoff:
 
-A simple application of this function is to extract low-energy isomers
+1. The combination of rank and value cutoff may provide chemically
+   intuitive and computationally affordable results.
+2. A small cutoff is encouraged to perform a trial calculation, to
+   ‘feel’ the computational cost, then enlarge it to gain a more
+   complete view.
+
+For input format, please check the
+`example <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/cutoff>`__.
+
+Another application of this function is to extract low-energy isomers
 from an information pickle file, see
 `get_low_e_xyz.py <https://github.com/Franklalalala/AutoSteper/blob/master/gym/simulation/cutoff/get_low_e_xyz.py>`__.
 
@@ -416,8 +415,58 @@ stay the same as above. The execution method of AutoSteper changed from
 Generator
 ---------
 
-The generator module is in charge of building molecules. Details of
-parameters are presented below:
+AutoSteper builds molecules with simple geometry techniques considered.
+See Fig x.
+
+.. image:: ./fig/build_unit.png
+   :alt: build_unit
+   :align: center
+
+.. raw:: html
+
+   <center>
+
+Fig x. Visualization of modeling techniques.
+
+.. raw:: html
+
+   </center>
+
+That is when one is trying to functionalize a carbon site. Three of its
+neighbors and the cage center are considered, see Fig x (a). To start
+with, here we put one Cl atom on top of this carbon site. This procedure
+is split into 3 steps:
+
+1. Calculate the normal vector of the three neighbors formed plane.
+2. If this normal vector points to the inside of this cage (judged by
+   the cage center), give it a minus sign to make sure it points to the
+   outside.
+3. Start from the ‘to-be-functionalized’ atom, following the direction
+   of the normal vector, at a distance of bond length, put an atom.
+
+This will get a quasi-equilibrium isomer since the bond length is
+hand-tuned.
+
+For the -OH group, an additional step is required:
+
+4. Create a new atom. Set the distance between new atoms and previously
+   defined O atom as a fixed value. Set the angle between new-O-C to a
+   fixed value.
+
+This will ensure that the new H atom is staying in a circle, its
+position will ensure that O-H distance and C-O-H met requirements,
+though its specific position will not be defined.
+
+For the -CH3 and -CF3 group, an additional step is required compared to
+-OH:
+
+5. After we put the first H or F atom, rotate the C-H (C-F) vector with
+   the normal vector as the axis, :math:`\rm \frac{2}{3\pi}` and
+   :math:`\rm \frac{4}{3\pi}` respectively to get two new vectors. Start
+   from the new carbon atom, following these two vectors, at a distance
+   of C-H (C-F) bond length, put the rest two atoms.
+
+Details of parameters are presented below:
 
 -  ``group``: the name of functional groups. Currently, AutoSteper
    supports :math:`\rm C_{2n}X_m(X=H, F,Cl, Br, I, OH, CF_3, CH_3)`.
@@ -429,12 +478,16 @@ parameters are presented below:
 
 -  ``geom_mode``: decides how to build quasi-equilibrium isomers. This
    parameter is highly recommended to be set as ``pre_defined``. The
-   pre-defined geometry parameters are chosen from thousands of randomly
-   sampled isomers. If one needs to change these parameters, set
-   ``geom_mode`` to another value and assign new parameters through
+   pre-defined geometry parameters are achieved from thousands of
+   randomly sampled isomers. If one needs to change these parameters,
+   set ``geom_mode`` to another value and assign new parameters through
    ``geom_para``. Note that, the new format needs to stay consistent
    with `the
    original <https://github.com/Franklalalala/AutoSteper/blob/18f474b0dd58adc9cd7484007a14927e2cde5123/src/autosteper/generator.py#L12>`__.
+
+-  ``skin``: parameter to decide whether two atoms are bonded. For
+   details see the checker module. By default, this parameter is set to
+   be 0.15.
 
 Note that, the generator module could be used alone to build hand-tuned
 structures. See
@@ -585,8 +638,48 @@ Checker
 -------
 
 The checker module will check optimized isomers to ensure an undermined
-topology. 7 scenarios could be detected, their corresponding failed
-status codes are presented below.
+topology. We implement the
+`natural_cutoffs <https://wiki.fysik.dtu.dk/ase/ase/neighborlist.html#ase.neighborlist.natural_cutoffs>`__
+to decide whether two atoms are bonded.
+
+Following this convention, we will assign covalent radii to each atom.
+For carbon atoms, it is 0.76, and for Cl atoms, it is 1.02.
+
+Additionally, we assign each atom **‘skin’**. That is, a fixed value for
+all atoms to boost the covalent radii. By default, this value is set to
+0.3. That means for the carbon atom, the covalent radii raised to 1.06,
+and for Cl atoms, it’s 1.32.
+
+With these parameters, if a carbon atom is within a 1.06+1.32(2.38)
+distance, we will decide they are bonded. However, the Cl-cage bond
+length distribution show that, the distance is around 1.8, see Fig x.
+Therefore, we turned down the skin value to 0.15. This will set a 2.08
+bond length limitation.
+
+.. image:: ./fig/Cl_addon_len.png
+   :alt: Cl_addon_len
+   :align: center
+
+.. raw:: html
+
+   <center>
+
+Fig x. The distribution of Cl-Cage bond length.
+
+.. raw:: html
+
+   </center>
+
+Note that, if a Cl atom deviated from the equilibrium position. The
+optimizer will either put this atom into another equilibrium position or
+turn it into a radical. It’s rare that this atom will stay in bonding
+boundaries.
+
+The ``skin`` parameter is tunable for a loose or tight bonding
+criterion.
+
+7 scenarios could be detected, their corresponding failed status codes
+are presented below.
 
 -  1: At least one functional group breaks the bond with the cage and
    becomes a radical.
@@ -603,6 +696,22 @@ status codes are presented below.
 -  7: The inner intactness of at least one functional group
    (:math:`\rm OH, CF_3, CH_3`) is undermined.
 
+Here in Fig x, we present examples:
+
+.. image:: ./fig/failed_example.png
+   :alt: failed_example
+   :align: center
+
+.. raw:: html
+
+   <center>
+
+Fig x. Illustration of some of the failed types.
+
+.. raw:: html
+
+   </center>
+
 These status codes will be reported in the ``failed_job_paths`` file and
 could be indexed from the ``status_info.pickle``. Additionally, these
 status codes could be collected with help of ``clc_failed`` function,
@@ -612,89 +721,6 @@ Need to mention that, the AutoSteper module doesn’t need any specific
 input parameters for the checker module, though it could also be used
 alone. See
 `checker <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/checker>`__.
-
-Path parser
------------
-
-The ``Path_Parser`` is an abstraction designed to get pathways from the
-``parent-son`` information, which is generated along with the **Growth
-Simulation**. This feature is considered since the very beginning of
-AutoSteper. The ``parent-son`` information could be viewed as a
-by-product of the simulation, therefore the calculation of pathways is
-extremely fast.
-
-One needs to provide the following parameters for a basic configuration:
-
-.. code:: python
-
-   path_para = {
-       'step': 1, # the step that used in the growth simulation.
-       'start': 1, # when the growth simulation started
-       'q_add_num': 4, 
-       'q_path_rank': 10,
-       'q_isomer_rank': 5,
-       'log_low_e_num': 10, 
-   }
-
-The configuration will generate pathways for :math:`\rm C_{2n}X_{m}\_i`.
-Here the ``q_add_num`` is the m, the ``q_isomer_rank`` is i.
-``log_low_e_num`` will dump low-energy isomers
-:math:`\rm C_{2n}X_{m}\_i, i<log\_low\_e\_num` into a log.
-``q_path_rank`` will decide how many low-energy pathways to be dumped.
-
-This configuration parses pathways for the specific ``q_isomer_rank``.
-All the pathways end to the
-:math:`\rm C_{2n}X_{m}\_i, i=q\_isomer\_rank`.
-
-To see a mixed scenario, simply set the ``is_mixed`` flag to True. The
-generated pathways will end to
-:math:`\rm C_{2n}X_{m}\_i, i<=q\_isomer\_rank`.
-
-If one needs a higher accuracy of pathways, there is a refiner option in
-``Path_Parser``. If one needs to control the number of pathways, set a
-``ctl_path_para`` as below:
-
-.. code:: python
-
-   path_para = {
-       'step': 1, # the step that used in the growth simulation.
-       'start': 1, # when the growth simulation started
-       'q_add_num': 22, 
-       'q_path_rank': 10,
-       'q_isomer_rank': 5,
-       'log_low_e_num': 10, 
-       'ctl_path_para': {
-           'ctl_parent_num': 3, # Control the number of parents for each isomer.
-           'max_path_num': 10000, # Control the maximum number of pathways.
-       }
-   }
-
-This is for the case when the queried addon number is very high. Since
-the ``Path_Parser`` functions in a DFS way, the low-energy pathways will
-be well preserved.
-
-The generated pathways are highly structured and informative, see
-`path_parser <https://github.com/Franklalalala/AutoSteper/tree/master/gym/simulation/path_parser>`__.
-Here presents the well-designed heatmap. See Fig 12. This is the pathway
-for :math:`\rm C_{60}Cl_6` under xTB level of theory.
-
-.. image:: ./fig/Path_relative_energy.png
-   :alt: Path_relative_energy
-   :align: center
-
-.. raw:: html
-
-   <center>
-
-Fig 12. Example of the generated heatmap for pathways.
-
-.. raw:: html
-
-   </center>
-
-It well-explained the ranking of pathways. For example, all the related
-isomers for the pathway in row 1 is the lowest-energy one (relative
-energy is 0), therefore it’s the lowest-energy pathway.
 
 Black list
 ----------
