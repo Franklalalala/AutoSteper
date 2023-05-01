@@ -72,17 +72,15 @@ def _prep_relatives(q_atoms: Atoms = None, group: str = None, cage_size: int = N
               'The addons should be atomic addons.\n'
               'Complex senerio could be tackled with strip_extraFullerene function in tools module.')
         pristine_cage, q_add_set = strip_extraFullerene(atoms=q_atoms, group=group)
+        cage_size = len(pristine_cage)
+        mid_add_num = len(q_add_set)
     elif q_seq:
         _, q_add_set, _0 = seq2name(q_seq, q_cage)
+        mid_add_num = len(q_add_set)
+        cage_size = q_cage.size
     else:
         print('Please input query addon set.\n'
               'Currently only surpport ase.atoms input, sequence input and addon set input.')
-
-    mid_add_num = len(q_add_set)
-    if q_cage:
-        cage_size = q_cage.size
-    else:
-        print('Please input cage size.')
     return q_add_set, cage_size, mid_add_num
 
 
@@ -161,7 +159,7 @@ def simple_log_relatives(workbase: str, dump_log_path: str,
 def strict_scatter_relatives(workbase: str, dump_folder: str,
                              step: int, fst_add_num: int = None, final_add_num: int = None,
                              q_atoms: Atoms = None, q_seq: str = None, q_cage: Cage = None,
-                             cutoff: dict = None):
+                             cutoff: dict = None, group: str = None):
     is_first = True
 
     def _prep_unit():
