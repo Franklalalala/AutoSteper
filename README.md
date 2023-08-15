@@ -6,7 +6,25 @@
 
 Automated Stepwise Addition Procedure for Extrafullerene. 
 
-A detailed description could be found in the article: Exploring exohedral functionalization of fullerene with Automation and Neural Network Potential. ![overview](./docs/manual/fig/overview.png)
+A detailed description could be found in the article: Exploring exohedral functionalization of fullerene with Automation and Neural Network Potential.
+
+Cite this:
+```latex
+@article{LIU2023118180,
+title = {Exploring exohedral functionalization of fullerene with automation and Neural Network Potential},
+journal = {Carbon},
+volume = {213},
+pages = {118180},
+year = {2023},
+issn = {0008-6223},
+doi = {https://doi.org/10.1016/j.carbon.2023.118180},
+url = {https://www.sciencedirect.com/science/article/pii/S0008622323004256},
+author = {Mingkang Liu and Yanbo Han and Yonghong Cheng and Xiang Zhao and Hong Zheng},
+keywords = {Exohedral fullerene, Neural network potential, Graph theory, Functionalization mechanism, Nanocluster},
+}
+```
+
+![overview](./docs/manual/fig/overview.png)
 
 <center>Overview of the Stepwise model.</center>
 
